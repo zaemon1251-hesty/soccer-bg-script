@@ -45,32 +45,33 @@ tqdm.pandas()
 PromptArgments = namedtuple("PromptArgments", ["comment", "game", "previous_comments"])
 
 
-# ALL_CSV_PATH = Config.target_base_dir / f"denoised_{half_number}_tokenized_224p_all.csv"
-ALL_CSV_PATH = (
-    Config.target_base_dir / f"500game_denoised_{half_number}_tokenized_224p_all.csv"
-)
-# ANNOTATION_CSV_PATH = (
-#     Config.target_base_dir
-#     / f"{random_seed}_denoised_{half_number}_tokenized_224p_annotation.csv"
+ALL_CSV_PATH = Config.target_base_dir / f"denoised_{half_number}_tokenized_224p_all.csv"
+# ALL_CSV_PATH = (
+#     Config.target_base_dir / f"500game_denoised_{half_number}_tokenized_224p_all.csv"
 # )
+ANNOTATION_CSV_PATH = (
+    Config.target_base_dir
+    / f"{random_seed}_denoised_{half_number}_tokenized_224p_annotation.csv"
+)
 PROMPT_YAML_PATH = Config.target_base_dir.parent / "resources" / "classify_comment.yaml"
 
-# LLM_ANOTATION_CSV_PATH = (
-#     Config.target_base_dir
-#     / f"{model_type}_{random_seed}_{half_number}_llm_annotation.csv"
-# )
-
 LLM_ANOTATION_CSV_PATH = (
-    Config.target_base_dir / f"{model_type}_500game_{half_number}_llm_annotation.csv"
+    Config.target_base_dir
+    / f"{model_type}_{random_seed}_{half_number}_llm_annotation-20240104a.csv"
 )
 
+# LLM_ANOTATION_CSV_PATH = (
+#     Config.target_base_dir / f"{model_type}_500game_{half_number}_llm_annotation.csv"
+# )
+
 LLM_ANNOTATION_JSONL_PATH = (
-    Config.target_base_dir / f"{model_type}_500game_{half_number}_llm_annotation.jsonl"
+    Config.target_base_dir
+    / f"{model_type}_{random_seed}_{half_number}_llm_annotation.jsonl"
 )  # ストリームで保存するためのjsonlファイル
 
 all_comment_df = pd.read_csv(ALL_CSV_PATH)
 # annotation_df = pd.read_csv(ANNOTATION_CSV_PATH).head(10)
-annotation_df = pd.read_csv(LLM_ANOTATION_CSV_PATH)
+annotation_df = pd.read_csv(ANNOTATION_CSV_PATH)
 # load yaml
 prompt_config = yaml.safe_load(open(PROMPT_YAML_PATH, "r"))
 

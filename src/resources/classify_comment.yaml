@@ -23,20 +23,20 @@ shots:
       - comment => A terrific season as a Marseille player.
     assistant: |
       {"reason": "This comment refers player's performance in last season but terrific is just a commentator's feeling", "category": 0}
-  - 10:
-    user: |+
-      - game => 2015-04-05 - 22-00 Marseille 2 - 3 Paris SG
-      - previous comments =>  But he did well. Pastore scored his first goal with Argentina.
-      - comment => And the Argentine is enjoying quite a renaissance at the moment.
-    assistant: |
-      {"reason": "This comment refers just a commentator's subjective view of the team.", "category": 0}
-  - 11:
-    user: |+
-      - game => 2015-08-23 - 15-30 West Brom 2 - 3 Chelsea
-      - previous comments => The West Brom players. Led by Chris Brunt, who's one of the most experienced men. In words with Mark Clattenburg.
-      - comment => He's made it clear to Zuma that he saw what happened.
-    assistant: |
-      {"reason": "This comment refers a action in the pitch.", "category": 0}
+  # - 10:
+  #   user: |+
+  #     - game => 2015-04-05 - 22-00 Marseille 2 - 3 Paris SG
+  #     - previous comments =>  But he did well. Pastore scored his first goal with Argentina.
+  #     - comment => And the Argentine is enjoying quite a renaissance at the moment.
+  #   assistant: |
+  #     {"reason": "This comment refers just a commentator's subjective view of the team.", "category": 0}
+  # - 11:
+  #   user: |+
+  #     - game => 2015-08-23 - 15-30 West Brom 2 - 3 Chelsea
+  #     - previous comments => The West Brom players. Led by Chris Brunt, who's one of the most experienced men. In words with Mark Clattenburg.
+  #     - comment => He's made it clear to Zuma that he saw what happened.
+  #   assistant: |
+  #     {"reason": "This comment refers a action in the pitch.", "category": 0}
   - 12:
     user: |+
       - game => 2015-08-23 - 15-30 West Brom 2 - 3 Chelsea
@@ -51,3 +51,10 @@ shots:
       - comment => There is a moment when Atletico Madrid checks the goal twice.
     assistant: |
       {"reason": "This comment refers total number of specific events in current game.", "category": 1}
+  - 1:
+    user: |+
+      - game => 2016-08-14 - 18-00 Arsenal 3 - 4 Liverpool
+      - previous comments => Some good forwards here, was it the heel of Chambers that just took it away? => Just there. It's an important touch. Without Murtosaka, Koselnick, they'd be vulnerable on set-pieces. These are always awkward to defend.
+      - comment => Still standing firm, 25 minutes gone, 0-0.
+    assistant: |
+      {"reason": "This comment contaions current game stats.", "category": 1}

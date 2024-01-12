@@ -177,6 +177,11 @@ def seconds_to_gametime(seconds):
     return f"{int(m):02}:{int(s):02}"
 
 
+def gametime_to_seconds(gametime):
+    m, s = gametime.split(":")
+    return int(m) * 60 + int(s)
+
+
 def fill_csv_from_json():
     annotation_df = pd.read_csv(LLM_ANOTATION_CSV_PATH)
     annotation_df[binary_category_name] = pd.NA

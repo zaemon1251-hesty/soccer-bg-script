@@ -113,6 +113,11 @@ def get_num_with_audio_commentary():
     return game_num
 
 
+def get_num__words_per_comment():
+    result = all_game_df["text"].apply(lambda x: len(x.split())).mean()
+    return result
+
+
 if __name__ == "__main__":
     logger.info("500game")
     logger.info(f"half_number: {half_number}")
