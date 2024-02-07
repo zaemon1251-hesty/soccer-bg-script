@@ -35,16 +35,18 @@ HUMAN_ANOTATION_CSV_PATH = (
     Config.target_base_dir
     / f"{random_seed}_{half_number}_moriy_annotation_preprocessed.csv"
 )
-ALL_CSV_PATH = (
-    Config.target_base_dir / f"500_denoised_{half_number}_tokenized_224p_all.csv"
-)
+
+ALL_CSV_PATH = Config.target_base_dir / f"denoised_{half_number}_tokenized_224p_all.csv"
+# ALL_CSV_PATH = (
+#     Config.target_base_dir / f"500_denoised_{half_number}_tokenized_224p_all.csv"
+# )
 
 DENISED_TOKENIZED_CSV_TEMPLATE = f"denoised_{half_number}_tokenized_224p.csv"
 
-# ANNOTATION_CSV_PATH = (
-#     Config.base_dir
-#     / f"{random_seed}_denoised_{half_number}_tokenized_224p_annotation.csv"
-# )
+ANNOTATION_CSV_PATH = (
+    Config.target_base_dir
+    / f"{random_seed}_denoised_{half_number}_tokenized_224p_annotation.csv"
+)
 
 # LLM_ANOTATION_CSV_PATH = (
 #     Config.base_dir / f"{model_type}_{random_seed}_{half_number}_llm_annotation.csv"
@@ -201,8 +203,7 @@ def fill_csv_from_json():
 
 
 if __name__ == "__main__":
-    # create_tokenized_annotation_csv()
+    create_tokenized_annotation_csv()
     # output_label_statistics(LLM_ANOTATION_CSV_PATH, binary=True)
     # add_column_to_csv()
-    fill_csv_from_json()
-    pass
+    # fill_csv_from_json()

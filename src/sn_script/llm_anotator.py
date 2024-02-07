@@ -53,6 +53,7 @@ ANNOTATION_CSV_PATH = (
     Config.target_base_dir
     / f"{random_seed}_denoised_{half_number}_tokenized_224p_annotation.csv"
 )
+
 PROMPT_YAML_PATH = Config.target_base_dir.parent / "resources" / "classify_comment.yaml"
 
 LLM_ANOTATION_CSV_PATH = (
@@ -281,7 +282,7 @@ def _create_target_prompt(prompt_args: PromptArgments) -> str:
 
 
 if __name__ == "__main__":
-    main()
+    # main()
 
     # ChatGPT用のプロンプトを作成する
     TARGET_PROMPT_CSV_PATH = (
@@ -301,4 +302,4 @@ if __name__ == "__main__":
         with open(TARGET_PROMPT_CSV_PATH, "w") as f:
             f.write("\n".join(targe_prompt_list))
 
-    # output_target_prompt()
+    output_target_prompt()

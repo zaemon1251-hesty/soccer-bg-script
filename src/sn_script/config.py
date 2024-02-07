@@ -22,8 +22,8 @@ subcategory_name = "小分類"
 
 
 # ターゲットの設定
-random_seed = 42
-half_number = 2
+random_seed = 10
+half_number = 1
 
 # 使用するLLMのモデル名
 model_type = "gpt-3.5-turbo-1106"

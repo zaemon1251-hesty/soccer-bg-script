@@ -1,0 +1,50 @@
+システム：
+与えられたサッカーの実況テキストを分類してください。
+テキストには、付加的情報が含まれています。
+付加的情報には、現在および過去の試合、イベント、過去のインタビューから調査したデータや数値情報、統計が含まれます。
+分類項目は以下の通りです。
+1.1 個人に関する背景知識　特徴 (見た目、性格など),他の人との関係,経歴・キャリア情報 能力・チームにおける役割 体調やけが
+1.4 個人に関する過去の試合またはシーズン通してのプレー内容・スタッツ・データ
+1.5 個人に関する現在の試合のプレー内容・スタッツ・データ
+1.8 個人に関するその他の情報 (エピソード、コメントなど)
+2.1 チームに関する背景知識　特徴 (チームスタイルなど),移籍に関する言及,
+2.3 チームに関する過去の試合またはシーズン通してのプレー内容・スタッツ、データ
+2.4 チームに関する現在の試合の情報・プレー内容、スタッツ、データ
+2.5 チームに関するその他の情報 (チームのオーナーの話、ビジネスの話など)
+3.3 その他
+
+- 1:
+  user: |+
+    - game => 2016-08-14 - 18-00 Arsenal 3 - 4 Liverpool
+    - previous comments => Some good forwards here, was it the heel of Chambers that just took it away? => Just there. It's an important touch. Without Murtosaka, Koselnick, they'd be vulnerable on set-pieces. These are always awkward to defend.
+    - comment => Still standing firm, 25 minutes gone, 0-0.
+  assistant: |
+    [{"reason": "チームの試合データを含む", "category": 2.3}]
+- 3:
+  user: |+
+    - game => 2015-08-29 - 19-30 Bayern Munich 3 - 0 Bayer Leverkusen
+    - previous comments => What an impact he can have. Is he who takes the corner kick? Wendel sends it back. It's not the kind of quality that Çalhanoğlu had from a dead ball in a similar position. Eight Bundesliga goals last season for Çalhanoğlu.
+    - comment => Six of them were free kicks.
+  assistant: |
+    [{"reason": "選手個人のスタッツを含む", "category": 1.4}]
+- 7:
+  user: |+
+    - game: 2017-05-21 - 21-00 Malaga 0 - 2 Real Madrid
+    - previous comments: 43-1. Real Madrid are very close to the league title. They're up 6 points from Barcelona. Barça are very close to the cup. Real Madrid have four points ahead of them.
+    - comment: Two points for Malaga and two points for Barcelona.
+  assistant: |
+    [{"reason": "チームの試合データを含む", "category": 2.3}]
+- 15:
+  user: |+
+    game: 2016-08-14 - 18-00 Arsenal 3 - 4 Liverpool
+    previous comments: I think the necessity of the club is that they've got to win games straight away. I think that if they do lose today, it would come under some pressure, Arsene Wenger.
+    comment: Speaking to fans before the game, they certainly weren't coming into the ground on spy, I don't know whether you felt the same thing, Martin.
+  assistant: |
+    [{"reason": "観客へのインタビューの内容を含む", "category": 3.3}]
+- 17:
+  user: |+
+    - game: 2015-09-15 - 21-45 Galatasaray 0 - 2 Atl. Madrid
+    - previous comments: It is not effective. Rieto touched. Mustera. We will leave the first 15 minutes later. There is no clear position in both goals.
+    - comment: There is a moment when Atletico Madrid checks the goal twice.
+  assistant: |
+    [{"reason": "チームの試合のイベント情報を含む", "category": 2.3}]
