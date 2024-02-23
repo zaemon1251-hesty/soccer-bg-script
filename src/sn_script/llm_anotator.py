@@ -42,13 +42,16 @@ tqdm.pandas()
 
 
 # プロンプト作成用の引数
-PromptArgments = namedtuple("PromptArgments", ["comment", "game", "previous_comments"])
+PromptArgments = namedtuple(
+    "PromptArgments", ["id", "comment", "game", "previous_comments"]
+)
 
 
-ALL_CSV_PATH = Config.target_base_dir / f"denoised_{half_number}_tokenized_224p_all.csv"
-# ALL_CSV_PATH = (
-#     Config.target_base_dir / f"500game_denoised_{half_number}_tokenized_224p_all.csv"
-# )
+# ALL_CSV_PATH = Config.target_base_dir / f"denoised_{half_number}_tokenized_224p_all.csv"
+ALL_CSV_PATH = (
+    Config.target_base_dir / f"500game_denoised_{half_number}_tokenized_224p_all.csv"
+)
+
 ANNOTATION_CSV_PATH = (
     Config.target_base_dir
     / f"{random_seed}_denoised_{half_number}_tokenized_224p_annotation.csv"
@@ -262,7 +265,7 @@ def create_target_prompt(comment_id: int) -> str:
     )
 
     target_prompt_args = PromptArgments(
-        target_comment["text"], target_comment["game"], previous_comments
+        comment_id, target_comment["text"], target_comment["game"], previous_comments
     )
 
     message = _create_target_prompt(target_prompt_args)
@@ -273,12 +276,23 @@ def _create_target_prompt(prompt_args: PromptArgments) -> str:
     """分類対象のコメントに関するプロンプトを作成する"""
 
     message = f"""
+- id => {prompt_args.id}
 - game => {prompt_args.game}
 - previous comments => {" ".join(prompt_args.previous_comments)}
 - comment => {prompt_args.comment}
 """
 
     return message
+
+
+def output_target_prompt(ANNOTATION_CSV_PATH):
+    annotation_df = pd.read_csv(ANNOTATION_CSV_PATH)
+    targe_prompt_list = []
+    for comment_id in annotation_df["id"]:
+        targe_prompt_list.append(create_target_prompt(comment_id))
+
+    with open(TARGET_PROMPT_CSV_PATH, "w") as f:
+        f.write("\n".join(targe_prompt_list))
 
 
 if __name__ == "__main__":
@@ -293,13 +307,4 @@ if __name__ == "__main__":
         / f"{random_seed}_{half_number}_target_prompt.txt"
     )
 
-    def output_target_prompt():
-        annotation_df = pd.read_csv(ANNOTATION_CSV_PATH)
-        targe_prompt_list = []
-        for comment_id in annotation_df["id"]:
-            targe_prompt_list.append(create_target_prompt(comment_id))
-
-        with open(TARGET_PROMPT_CSV_PATH, "w") as f:
-            f.write("\n".join(targe_prompt_list))
-
-    output_target_prompt()
+    output_target_prompt(ANNOTATION_CSV_PATH)
