@@ -4,9 +4,9 @@ import os
 
 # 　分析対象のデータセットのパス
 class Config:
-    base_dir = Path(__file__).parent.parent.parent.parent / "data"  #
+    base_dir = Path(__file__).parent.parent.parent.parent / "data"  # (project)/data
     # base_dir = Path("/raid_elmo/home/lr/moriy")
-    target_base_dir = Path(__file__).parent.parent / "data"
+    target_base_dir = Path(__file__).parent.parent.parent / "data"  # sn-script/data
     target_file_path = target_base_dir / "figure_targets.txt"
     targets = [
         # os.path.join("SoccerNet", target)

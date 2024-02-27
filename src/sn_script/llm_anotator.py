@@ -300,9 +300,7 @@ if __name__ == "__main__":
 
     # ChatGPT用のプロンプトを作成する
     TARGET_PROMPT_CSV_PATH = (
-        Config.base_dir.parent
-        / "sn-script"
-        / "src"
+        Config.target_base_dir.parent
         / "resources"
         / f"{random_seed}_{half_number}_target_prompt.txt"
     )
