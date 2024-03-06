@@ -203,7 +203,18 @@ def fill_csv_from_json():
 
 
 if __name__ == "__main__":
-    create_tokenized_annotation_csv()
-    # output_label_statistics(LLM_ANOTATION_CSV_PATH, binary=True)
-    # add_column_to_csv()
-    # fill_csv_from_json()
+    from argparse import ArgumentParser
+
+    parser = ArgumentParser()
+
+    parser.add_argument("type", type=str, help="type of function to run")
+    args = parser.parse_args()
+
+    if args.type == "create":
+        create_tokenized_annotation_csv()
+    elif args.type == "add":
+        add_column_to_csv()
+    elif args.type == "dump":
+        fill_csv_from_json()
+    else:
+        raise ValueError(f"Invalid type: {args.type}")

@@ -251,14 +251,18 @@ def preprocess_human_annotation():
 
     # 格納されている配列の中の文字列となっている数字を小数点に変換
     human_df[category_name] = human_df[category_name].apply(
-        lambda x: [int(i) if i not in ["None", "nan"] else None for i in x]
-        if isinstance(x, list)
-        else x
+        lambda x: (
+            [int(i) if i not in ["None", "nan"] else None for i in x]
+            if isinstance(x, list)
+            else x
+        )
     )
     human_df[subcategory_name] = human_df[subcategory_name].apply(
-        lambda x: [float(i) if i not in ["None", "nan"] else None for i in x]
-        if isinstance(x, list)
-        else x
+        lambda x: (
+            [float(i) if i not in ["None", "nan"] else None for i in x]
+            if isinstance(x, list)
+            else x
+        )
     )
 
     # 大分類に格納されてる配列の要素数に小分類を合わせる.
@@ -279,15 +283,60 @@ def preprocess_human_annotation():
     )
 
 
+def evaluate_subcategory():
+    from sklearn.metrics import classification_report
+
+    human_df = pd.read_csv(SUBCATEGORY_ANNOTATION_CSV_PATH).sort_values("id")
+    llm_df = pd.read_csv(SUBCATEGORY_LLM_CSV_PATH).sort_values("id")
+
+    assert set(human_df["id"]) == set(llm_df["id"])
+
+    # Prepare the data for accuracy and F1 score calculation with the values as strings
+    y_true_str = human_df[subcategory_name].astype(str)
+    y_pred_str = llm_df[subcategory_name].astype(str)
+
+    # Recalculate classification report for detailed analysis (precision, recall, f1-score by class)
+    class_report = classification_report(y_true_str, y_pred_str, output_dict=True)
+
+    logger.info("key, precision, recall, f1-score")
+    for k, v in class_report.items():
+        if isinstance(v, dict):
+            logger.info(f"{k}, {v['precision']}, {v['recall']}, {v['f1-score']}")
+        else:
+            logger.info(k, v)
+    logger.info("Done evaluation")
+
+
 if __name__ == "__main__":
+    from argparse import ArgumentParser
+
+    parser = ArgumentParser()
+    parser.add_argument("--target", type=str, help="type of function to run")
+    parser.add_argument("--preprocess", action="store_true")
+    parser.add_argument(
+        "--prefix", type=str, help="file name prefix for subcategory llm csv"
+    )
+    args = parser.parse_args()
     time_str = pd.Timestamp.now().strftime("%Y%m%d-%H%M%S")
     logger.add(
         "logs/evaluate_llm_annotation_{time}.log".format(
             time=time_str,
         )
     )
-    # preprocess_human_annotation()
-    evaluator = EvaluateAnnotationSingle()
-    result = evaluator.evaluate()
-    logger.info(result)
-    # {'category': [1, 2], 'subcategory': [1.8, None]}
+    if args.preprocess:
+        preprocess_human_annotation()
+    if args.target == "binary":
+        evaluator = EvaluateAnnotationSingle()
+        result = evaluator.evaluate()
+        logger.info(result)
+    if args.target == "subcategory":
+        SUBCATEGORY_ANNOTATION_CSV_PATH = (
+            Config.target_base_dir
+            / f"20240306_{half_number}_{random_seed}_supplementary_comments_annotation.csv"
+        )
+        SUBCATEGORY_LLM_CSV_PATH = (
+            Config.target_base_dir / f"{args.prefix}_subcategory_llm_annotation.csv"
+        )
+        evaluate_subcategory()
+    else:
+        raise ValueError(f"Invalid type: {args.target}")

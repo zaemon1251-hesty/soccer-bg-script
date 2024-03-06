@@ -34,11 +34,19 @@ LLM_ANOTATION_CSV_ALL_PATH = (
 )
 SUP_SUBCATEGORY_COMMENTS_TXT_PATH = (
     Config.target_base_dir
-    / f"20240217_{half_number}_{random_seed}_supplementary_comments.txt"
+    / f"20240301_{half_number}_{random_seed}_supplementary_comments.txt"
 )
 SUBCATEGORY_COMMENTS_JSONL_PATH = (
     Config.target_base_dir
     / f"20240217_{half_number}_{random_seed}_supplementary_comments.jsonl"
+)
+
+SUBCATEGORY_ANNOTATION_CSV_PATH = (
+    Config.target_base_dir
+    / f"20240306_{half_number}_{random_seed}_supplementary_comments_annotation.csv"
+)
+SUBCATEGORY_LLM_CSV_PATH = (
+    Config.target_base_dir / "{file_name_prefix}_subcategory_llm_annotation.csv"
 )
 
 
@@ -154,7 +162,58 @@ def statistics_subcategory():
     logger.info(f"subcategory_length\n{subcategory_length_str}")
 
 
+def create_annotation_csv_from_jsonl():
+    all_comment_df = pd.read_csv(LLM_ANOTATION_CSV_ALL_PATH)
+    anotation_data = []
+    with open(SUBCATEGORY_COMMENTS_JSONL_PATH, "r", encoding="utf-8") as file:
+        lines = file.readlines()
+        for line in lines:
+            comment_data = json.loads(line)
+            # カテゴリがない場合は0を入れる
+            comment_data["subcategory"] = 0
+            # 最後のサブカテゴリを取得
+            for subcategory in comment_data["output"]:
+                comment_data["subcategory"] = subcategory["category"]
+            anotation_data.append(comment_data)
+    annotation_idxs = [int(data["id"]) for data in anotation_data]
+    annotation_df = all_comment_df[all_comment_df.index.isin(annotation_idxs)]
+
+    # アノテーション済みのデータフレームを作成
+    annotation_df.loc[annotation_idxs, subcategory_name] = [
+        data["subcategory"] for data in anotation_data
+    ]
+    annotation_df.to_csv(SUBCATEGORY_ANNOTATION_CSV_PATH, index=False)
+
+
+def create_llm_annotation_csv(file_name_prefix: str):
+    annotation_df = pd.read_csv(SUBCATEGORY_ANNOTATION_CSV_PATH)
+    annotation_df[subcategory_name] = pd.NA
+    annotation_df.to_csv(
+        str(SUBCATEGORY_LLM_CSV_PATH).format(file_name_prefix=file_name_prefix),
+        index=False,
+    )
+
+
 if __name__ == "__main__":
-    # run_write_supplementary_comments_txt()
-    # generate_subcategory_jsonlines()
-    statistics_subcategory()
+    from argparse import ArgumentParser
+
+    parser = ArgumentParser()
+
+    parser.add_argument("type", type=str, help="type of function to run")
+    parser.add_argument(
+        "--prefix", type=str, help="file name prefix for llm_annotation_df", default=""
+    )
+    args = parser.parse_args()
+
+    if args.type == "txt":
+        run_write_supplementary_comments_txt()
+    elif args.type == "jsonl":
+        generate_subcategory_jsonlines()
+    elif args.type == "statistics":
+        statistics_subcategory()
+    elif args.type == "jsonl2csv":
+        create_annotation_csv_from_jsonl()
+    elif args.type == "llmcsv":
+        create_llm_annotation_csv(args.prefix)
+    else:
+        raise ValueError(f"Invalid type: {args.type}")

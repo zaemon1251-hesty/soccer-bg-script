@@ -29,7 +29,6 @@
     - comment => Six of them were free kicks.
   assistant: |
     [{"key-phrases": ["Six of them", "free kicks"], "reason": "選手個人のスタッツを含む", "category": 1.4}]
-
 - 7:
   user: |+
     - game: 2017-05-21 - 21-00 Malaga 0 - 2 Real Madrid
