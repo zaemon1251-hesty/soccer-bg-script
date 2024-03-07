@@ -295,13 +295,19 @@ def evaluate_subcategory():
     y_true_str = human_df[subcategory_name].astype(str)
     y_pred_str = llm_df[subcategory_name].astype(str)
 
+    # prepross
+    logger.info(set(y_true_str))
+    logger.info(set(y_pred_str))
+
     # Recalculate classification report for detailed analysis (precision, recall, f1-score by class)
     class_report = classification_report(y_true_str, y_pred_str, output_dict=True)
 
-    logger.info("key, precision, recall, f1-score")
+    logger.info("key, precision, recall, f1-score, support")
     for k, v in class_report.items():
         if isinstance(v, dict):
-            logger.info(f"{k}, {v['precision']}, {v['recall']}, {v['f1-score']}")
+            logger.info(
+                f"{k}, {v['precision']}, {v['recall']}, {v['f1-score']}, {v['support']}"
+            )
         else:
             logger.info(k, v)
     logger.info("Done evaluation")
