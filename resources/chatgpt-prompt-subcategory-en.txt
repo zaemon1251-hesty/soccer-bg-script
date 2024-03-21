@@ -20,32 +20,32 @@ The classification items are as follows:
     - previous comments => Some good forwards here, was it the heel of Chambers that just took it away? => Just there. It's an important touch. Without Murtosaka, Koselnick, they'd be vulnerable on set-pieces. These are always awkward to defend.
     - comment => Still standing firm, 25 minutes gone, 0-0.
   assistant: |
-    [{"key-phrases": ["25 minutes gone", "0-0"], "reason": "data about a team",  "category": 2.3}]
+    [{"clues": ["25 minutes gone", "0-0"], "reason": "data about a team",  "category": 2.3}]
 - 3:
   user: |+
     - game => 2015-08-29 - 19-30 Bayern Munich 3 - 0 Bayer Leverkusen
     - previous comments => What an impact he can have. Is he who takes the corner kick? Wendel sends it back. It's not the kind of quality that Çalhanoğlu had from a dead ball in a similar position. Eight Bundesliga goals last season for Çalhanoğlu.
     - comment => Six of them were free kicks.
   assistant: |
-    [{"key-phrases": ["Six of them", "were free kicks"], "reason": "stats about an individual", "category": 1.4}]
+    [{"clues": ["Six of them", "were free kicks"], "reason": "stats about an individual", "category": 1.4}]
 - 7:
   user: |+
     - game: 2017-05-21 - 21-00 Malaga 0 - 2 Real Madrid
     - previous comments: 43-1. Real Madrid are very close to the league title. They're up 6 points from Barcelona. Barça are very close to the cup. Real Madrid have four points ahead of them.
     - comment: Two points for Malaga and two points for Barcelona.
   assistant: |
-    [{"key-phrases": ["Two points for Malaga", "two points for Barcelona"], "reason": "data about a team", "category": 2.3}]
+    [{"clues": ["Two points for Malaga", "two points for Barcelona"], "reason": "data about a team", "category": 2.3}]
 - 15:
   user: |+
     game: 2016-08-14 - 18-00 Arsenal 3 - 4 Liverpool
     previous comments: I think the necessity of the club is that they've got to win games straight away. I think that if they do lose today, it would come under some pressure, Arsene Wenger.
     comment: Speaking to fans before the game, they certainly weren't coming into the ground on spy, I don't know whether you felt the same thing, Martin.
   assistant: |
-    [{"key-phrases": ["Speaking to fans", "they", "weren't coming into the ground on spy"], "reason": "past interview to fan", "category": 3.3}]
+    [{"clues": ["Speaking to fans", "they", "weren't coming into the ground on spy"], "reason": "past interview to fan", "category": 3.3}]
 - 17:
   user: |+
     - game: 2015-09-15 - 21-45 Galatasaray 0 - 2 Atl. Madrid
     - previous comments: It is not effective. Rieto touched. Mustera. We will leave the first 15 minutes later. There is no clear position in both goals.
     - comment: There is a moment when Atletico Madrid checks the goal twice.
   assistant: |
-    [{"key-phrases": ["Atletico Madrid", "checks the goal twice"], "reason": "data about a team", "category": 2.3}]
+    [{"clues": ["Atletico Madrid", "checks the goal twice"], "reason": "data about a team", "category": 2.3}]
