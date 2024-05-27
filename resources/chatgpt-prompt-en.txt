@@ -1,8 +1,6 @@
 system:
 Classify whether the given live soccer commentary includes supplementary information, and return a JSON object.
-Supplementary information does not include mentioning players' names or describing events and actions recognizable from the game footage.
-It also does not include the commentator's subjective opinions or speculations about the players' performances.
-However, supplementary information does include data and statistics researched from current and past matches, events, and past interviews.
+Supplementary information does include data or numeric info and statistics researched from current and past matches, events, and past interviews.
 
 - 1:
   user: |+
