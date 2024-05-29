@@ -34,7 +34,6 @@ model_type = "gpt-3.5-turbo-1106"
 # model_type = "meta-llama/Llama-2-70b-chat-hf"
 
 if __name__ == "__main__":
-    # print(len(Config.targets))
     listdir = []
     for target in Config.targets:
         path = Config.base_dir / target

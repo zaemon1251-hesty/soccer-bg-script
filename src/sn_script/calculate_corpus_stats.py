@@ -120,9 +120,9 @@ def get_num__words_per_comment():
 
 if __name__ == "__main__":
     logger.info("500game")
-    logger.info(f"half_number: {half_number}")
-    logger.info(f"model_type: {model_type}")
-    logger.info(f"total lenght: {len(all_game_df)}")
+    logger.info(f"{half_number=}")
+    logger.info(f"{model_type=}")
+    logger.info(f"{len(all_game_df)=}")
     logger.info(get_label_statistics(binary=True))
     logger.info(f"average number of comments per game: {get_average_num_comments()}")
     logger.info(f"language ratio: {get_number_audio_launguages()}")

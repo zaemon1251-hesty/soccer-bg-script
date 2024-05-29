@@ -97,9 +97,9 @@ def main(target: str = "binary"):
     logger.add(
         "logs/llm_anotator_{time}.log".format(time=time_str),
     )
-    logger.info(f"model_type:{model_type}")
-    logger.info(f"random_seed:{random_seed}")
-    logger.info(f"half_number:{half_number}")
+    logger.info(f"{model_type=}")
+    logger.info(f"{random_seed=}")
+    logger.info(f"{half_number=}")
 
     def annotate_category_binary(row):
         """_summary_
@@ -338,8 +338,13 @@ def _create_target_prompt(prompt_args: PromptArgments) -> str:
     return message
 
 
-def output_target_prompt(ANNOTATION_CSV_PATH):
+def output_target_prompt(ANNOTATION_CSV_PATH, TARGET_PROMPT_CSV_PATH, filter=False):
     annotation_df = pd.read_csv(ANNOTATION_CSV_PATH)
+
+    # 付加的情報が含まれているコメントのみを抽出する
+    if filter:
+        annotation_df = annotation_df[annotation_df[binary_category_name] == 1]
+
     targe_prompt_list = []
     for comment_id in annotation_df["id"]:
         targe_prompt_list.append(create_target_prompt(comment_id))
@@ -369,6 +374,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "--prefix", type=str, help="file name prefix for llm_annotation_df", default=""
     )
+    parser.add_argument(
+        "--filter",
+        help="filter comments that contain additional information",
+        action="store_true",
+    )
     args = parser.parse_args()
 
     if args.type == "main":
@@ -395,15 +405,15 @@ if __name__ == "__main__":
         main(args.target)
     elif args.type == "output_target_prompt":
         # ChatGPT用のプロンプトを作成する
+        ANNOTATION_CSV_PATH = (
+            Config.target_base_dir
+            / "20240306_1_10_supplementary_comments_annotation.csv"
+        )
         TARGET_PROMPT_CSV_PATH = (
             Config.target_base_dir.parent
             / "resources"
-            / f"{random_seed}_{half_number}_target_prompt.txt"
+            / f"{random_seed}_{half_number}_target_prompt_{args.filter}.txt"
         )
-        ANNOTATION_CSV_PATH = (
-            Config.target_base_dir
-            / f"{random_seed}_denoised_{half_number}_tokenized_224p_annotation.csv"
-        )
-        output_target_prompt(ANNOTATION_CSV_PATH)
+        output_target_prompt(ANNOTATION_CSV_PATH, TARGET_PROMPT_CSV_PATH, args.filter)
     else:
         raise ValueError(f"Invalid type:{args.type}")

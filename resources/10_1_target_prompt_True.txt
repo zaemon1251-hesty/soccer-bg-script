@@ -1,0 +1,437 @@
+
+- id => 591
+- game => england_epl/2014-2015/2015-02-21 - 18-00 Chelsea 1 - 1 Burnley
+- previous comments => Quiero parar un poco en él y subrayarlo porque me encantaría que nos lo repitieran además. Porque ante una buena presión, que es la que está haciendo el Burnley, no es perfecta, pero yo creo que tiene bastante nivel.
+- comment => El Chelsea ha salido con un simple toque, gracias al dominio del espacio y a la visión y la capacidad para jugar de primera de Sefábregas que con un simple toque ha desarmado una presión entera.
+
+
+- id => 2928
+- game => england_epl/2014-2015/2015-05-17 - 18-00 Manchester United 1 - 1 Arsenal
+- previous comments => Lo que en Inglaterra sería también como, si no hecho así bastante probable, la llegada aparte de Memphis Depay que ya ha fichado, de Madhumels. Hablando un poco de los centrales Madhumels.
+- comment => Se está especulando con la posibilidad de que al final Pogba vuelva.
+
+
+- id => 6258
+- game => england_epl/2015-2016/2015-08-29 - 17-00 Manchester City 2 - 0 Watford
+- previous comments => Foul by Barame Onigwara. Will he consider this first half a success?
+- comment => Well he will, because his team haven't conceded yet.
+
+
+- id => 8469
+- game => england_epl/2015-2016/2015-09-26 - 17-00 Leicester 2 - 5 Arsenal
+- previous comments => Qui trouve des brèches aussi pour Vardy. Paul Brighton qu'on n'a pas encore vu mais qui a une vraie belle qualité de passe.
+- comment => D'ailleurs il est passeur 3 fois depuis le début de saison.
+
+
+- id => 9362
+- game => england_epl/2015-2016/2015-09-26 - 17-00 Liverpool 3 - 2 Aston Villa
+- previous comments => Лукас. Каутиньо.
+- comment => Сколько мяч уже держится у футболистов Ливерпуля.
+
+
+- id => 10362
+- game => england_epl/2015-2016/2015-10-17 - 17-00 Chelsea 2 - 0 Aston Villa
+- previous comments => Nothing much in that one for me. Westwood.
+- comment => £50,000 fine being appealed by Jose Mourinho.
+
+
+- id => 10986
+- game => england_epl/2015-2016/2015-10-31 - 15-45 Chelsea 1 - 3 Liverpool
+- previous comments => Long trip to Russia for Jurgen Klopp and his team. We'll have the tournament Celtic games on Thursday night as well for you.
+- comment => DT Sport, that's the place to catch up with all the European action this week, Tuesday, Wednesday and Thursday.
+
+
+- id => 11004
+- game => england_epl/2015-2016/2015-10-31 - 15-45 Chelsea 1 - 3 Liverpool
+- previous comments => They've already been beaten five times. Last year it was December before they lost a game.
+- comment => He is in the tightest spot of his distinguished managerial career, Jose Mourinho.
+
+
+- id => 13200
+- game => england_epl/2015-2016/2015-11-08 - 19-00 Arsenal 1 - 1 Tottenham
+- previous comments => Es el verdadero drama de este equipo. Ahí había fuera de juego.
+- comment => Habría sido anulado eso.
+
+
+- id => 13446
+- game => england_epl/2015-2016/2015-11-21 - 20-30 Manchester City 1 - 4 Liverpool
+- previous comments => He needs to settle himself down. He started the first six Premier League games of the season for City, but only two of the six since then.
+- comment => It's three out of seven now.
+
+
+- id => 19904
+- game => england_epl/2015-2016/2016-03-19 - 18-00 Chelsea 2 - 2 West Ham
+- previous comments => Well, that was sharp play, Kennedy's gone a fraction too early, because look at this real rat-a-tat playing there, he's gone early, he's only got to look along the line and he's in, and then he's setting Remy up. Kennedy going a fraction early there, but great one-touch play from Chelsea early on.
+- comment => Kennedy, the 20-year-old Brazilian who scored the fastest goal in the Premier League this season after just 39 seconds, when Chelsea won at Norwich at the start of this month.
+
+
+- id => 21110
+- game => england_epl/2015-2016/2016-04-09 - 17-00 Swansea 1 - 0 Chelsea
+- previous comments => Francesco Guidolin's contract runs to June, he says as soon as they are mathematically safe, he will go and knock on Hugh Jenkins' door and ask what is going on with his future and Swansea's future. Brendan Rodgers still a firm favourite to take over here, Chris Coleman's name mentioned as well.
+- comment => Francesco Guidolin has almost done what he was asked to do, and that is to keep Swansea City in the Premier League.
+
+
+- id => 30363
+- game => england_epl/2016-2017/2016-10-22 - 17-00 Arsenal 0 - 0 Middlesbrough
+- previous comments => Соответственно, ошибаться, упуская какие-то зоны. Нет, все очень четко, все очень выстроено.
+- comment => Если футболист Арсеналу приходит с мячом в какую-либо зону в атаке, там его обязательно ждет один или два футболиста соперника.
+
+
+- id => 31889
+- game => england_epl/2016-2017/2016-10-29 - 17-00 Tottenham 1 - 1 Leicester
+- previous comments => Wanyama. It's a penalty.
+- comment => The grappling has gone on throughout the game.
+
+
+- id => 37404
+- game => england_epl/2016-2017/2016-12-27 - 20-15 Liverpool 4 - 1 Stoke City
+- previous comments => And Kruise yelling for the free kick, and the referee was going to give it anyway. He does really well here, Walters, makes a new some serve.
+- comment => It's not the greatest ball through, and it should be dealt with by the Liverpool defenders, but they miss it out, and he gets on to it really well.
+
+
+- id => 39486
+- game => england_epl/2016-2017/2017-01-14 - 20-30 Leicester 0 - 3 Chelsea
+- previous comments => Chelsea defence with some difficulty. Managed to hook it away.
+- comment => And have conceded a couple in both of their last two games in the Premier League.
+
+
+- id => 44760
+- game => europe_uefa-champions-league/2014-2015/2014-11-04 - 22-45 Dortmund 4 - 1 Galatasaray
+- previous comments => Kehl in seiner letzten Saison. Er trifft den Inneren am Knöchel, ohne den Ball spielen zu können.
+- comment => 34 ist er, im Februar wird er 35, Sebastian Kehl, aber so richtig führt an ihm kein Weg vorbei.
+
+
+- id => 44833
+- game => europe_uefa-champions-league/2014-2015/2014-11-04 - 22-45 Dortmund 4 - 1 Galatasaray
+- previous comments => Dann ist es Handspiel. In der Kapitän.
+- comment => Saisonübergreifend.
+
+
+- id => 45967
+- game => europe_uefa-champions-league/2014-2015/2014-11-05 - 22-45 Ajax 0 - 2 Barcelona
+- previous comments => Lionel Messi's 70th goal. In Champions League football in 90 matches.
+- comment => Just for the record, his last hat-trick in the Champions League was September last season against Ajax.
+
+
+- id => 58545
+- game => europe_uefa-champions-league/2014-2015/2015-04-15 - 21-45 FC Porto 3 - 1 Bayern Munich
+- previous comments => Two things, he's not favourite to win the ball, and goes in with the studs up, but if he doesn't win it, then he's almost just making the referee's job that little bit easier for him not to be available next week. That's more problems for Patek in defence.
+- comment => He's one of the few who's played every minute in the Champions League for Porto so far this season, that will come to an end.
+
+
+- id => 59327
+- game => europe_uefa-champions-league/2014-2015/2015-04-21 - 21-45 Barcelona 2 - 0 Paris SG
+- previous comments => Alves, Messi, Verratti, and Messi keeping up the pressure. And it's actually started the game really well, Verratti.
+- comment => Showboating here with Dani Alves and Lionel Messi.
+
+
+- id => 64337
+- game => europe_uefa-champions-league/2015-2016/2015-09-16 - 21-45 AS Roma 1 - 1 Barcelona
+- previous comments => Dinamo Kiev and Porto won a piece, that in Group G. In Group H, Hulk scoring for Zenit away at Valencia. They lead by a goal to nil and it's Gent 0, Lyon 0.
+- comment => Gent's first ever game in either the European Cup or Champions League.
+
+
+- id => 66648
+- game => europe_uefa-champions-league/2015-2016/2015-09-16 - 21-45 Olympiakos Piraeus 0 - 3 Bayern Munich
+- previous comments => Lewandowski. Hat ja hier sein allererstes Champions-League-Tor geschossen.
+- comment => Das erste von 23.
+
+
+- id => 68619
+- game => europe_uefa-champions-league/2015-2016/2015-09-29 - 21-45 FC Porto 2 - 1 Chelsea
+- previous comments => Now Marcano, across to the skipper. Maicon, not to be confused by the rather more famous Brazilian of that name.
+- comment => Gareth Bale gave a bit of a going-over in those Spurs intermatches a few seasons ago.
+
+
+- id => 70426
+- game => europe_uefa-champions-league/2015-2016/2015-11-03 - 18-00 FC Astana 0 - 0 Atl. Madrid
+- previous comments => In his second season, having arrived from Benfica. Eventually filling the void left of course by Thibaut Courtois' return to Chelsea.
+- comment => And they have only conceded eight goals in 13 games in all competitions this season.
+
+
+- id => 71664
+- game => europe_uefa-champions-league/2015-2016/2015-11-03 - 22-45 Manchester United 1 - 0 CSKA Moscow
+- previous comments => Mignasiewicz there, and then Wernblum was the player that it canned off, and it will be a Manchester United corner. Really encouraging, though, isn't it?
+- comment => We saw Rocco then hitting the ball wide, but he's in the six-yard box as a left-back, and Manchester United are getting an awful lot of bodies forward, and if you do that the ball's gonna drop to you at some point.
+
+
+- id => 72552
+- game => europe_uefa-champions-league/2015-2016/2015-11-03 - 22-45 Sevilla 1 - 3 Manchester City
+- previous comments => Konoplyanka. Sanea stayed with him.
+- comment => And it is another corner.
+
+
+- id => 78692
+- game => europe_uefa-champions-league/2015-2016/2015-11-25 - 22-45 Juventus 1 - 0 Manchester City
+- previous comments => Yeah, nice link-up play between Sanya and Navas. Good splant, young, to fob off Paul Pogba.
+- comment => Short option, Navas working this with De Bruyne, who slides a very good ball in, Aguero attacking that area, to Amande, and then Fernandinho, not that far away.
+
+
+- id => 79777
+- game => europe_uefa-champions-league/2015-2016/2015-11-25 - 22-45 Malmo FF 0 - 5 Paris SG
+- previous comments => D'avoir un jeu trop latéral. Là il y a vraiment de bonnes choses.
+- comment => Il y a des appels très tranchants.
+
+
+- id => 84855
+- game => europe_uefa-champions-league/2016-2017/2016-11-23 - 22-45 Arsenal 2 - 2 Paris SG
+- previous comments => Pas encore. Cavani, Cavani.
+- comment => Cavani premier poteau c'est sauvé sur sa ligne par Aaron Ramsey.
+
+
+- id => 91352
+- game => france_ligue-1/2016-2017/2017-02-10 - 22-45 Bordeaux 0 - 3 Paris SG
+- previous comments => Voilà Verratti tout à l'heure lorsqu'il a peut-être perdu sa chaussure. Lorsqu'il a été touché surtout.
+- comment => On sait qu'il souffrait du mollet.
+
+
+- id => 96357
+- game => germany_bundesliga/2014-2015/2015-04-25 - 16-30 Dortmund 2 - 0 Eintracht Frankfurt
+- previous comments => Reingechippt. Er zeigt sein ganzes Selbstvertrauen.
+- comment => Es ist sein 14.
+
+
+- id => 96517
+- game => germany_bundesliga/2014-2015/2015-04-25 - 19-30 Bayern Munich 1 - 0 Hertha Berlin
+- previous comments => Bayern kicking from right to left. No Alaba, no Bad Stuber, no Benatia although he should be back for the cup game against Dortmund in the middle of the week.
+- comment => Martinez is on the bench, Rafinha has got a groin injury, Ribéry still has that ankle problem and Robben a little bit too early for him to come back as well.
+
+
+- id => 98556
+- game => germany_bundesliga/2015-2016/2015-08-29 - 19-30 Bayern Munich 3 - 0 Bayer Leverkusen
+- previous comments => Four years since he swapped Leverkusen for Juventus. Four memorable years from in terms of silverware earned in Turin.
+- comment => Finally Guardiola has tempted him to the Allianz Arena.
+
+
+- id => 100962
+- game => germany_bundesliga/2015-2016/2015-09-22 - 21-00 Bayern Munich 5 - 1 Wolfsburg
+- previous comments => Es fehlen auch bei Bayern die zündenden Dehnen im Mittelfeld. Alonso lässt sich sehr weit zurückfahren, dass er das Spiel von hinten aufbauen kann.
+- comment => Bei Bayern fehlt die Unterstützung aus dem Mittelfeld heraus.
+
+
+- id => 101337
+- game => germany_bundesliga/2015-2016/2015-09-26 - 16-30 1. FSV Mainz 05 0 - 3 Bayern Munich
+- previous comments => Aber ich sag mal, zumindest ein halber Elfmeter war das ja eigentlich auch schon. Was auf der anderen Seite dann Yoshinori Muto hatte in der 25.
+- comment => Minute nach schöner Vorarbeit von de Blasis, als er frei steht knapp neben das Tor von Manuel Neuer zielte.
+
+
+- id => 103293
+- game => germany_bundesliga/2015-2016/2016-04-02 - 16-30 Bayern Munich 1 - 0 Eintracht Frankfurt
+- previous comments => Aber sie versuchen anzulaufen. Sie trainiert jetzt in der Länderspielpause.
+- comment => Immer wieder sauberes Verschieben im Mittelfeld.
+
+
+- id => 104256
+- game => germany_bundesliga/2015-2016/2016-04-23 - 16-30 Hertha Berlin 0 - 2 Bayern Munich
+- previous comments => Lewandowski. Neuer gegen Neuer.
+- comment => Sie kriegen wieder eine Ballbesitzstatistik.
+
+
+- id => 105381
+- game => germany_bundesliga/2016-2017/2016-09-23 - 21-30 Dortmund 3 - 1 SC Freiburg
+- previous comments => Und diese ersten Augenblicke sehen genauso aus. Das lief wirklich überragend für Thomas Doppel und seine Mannschaft.
+- comment => Nach dem Leipzig-Spiel wohlgemerkt.
+
+
+- id => 108566
+- game => germany_bundesliga/2016-2017/2016-12-10 - 17-30 FC Koln 1 - 1 Dortmund
+- previous comments => Dem Wille. Übrigens der Spieler mit den meisten Ballaktionen in dieser Anfangsviertelstunde.
+- comment => In der Offensive wird er gesucht und sie finden ihn dann auch häufig, weil er sich gut bewegt.
+
+
+- id => 108615
+- game => germany_bundesliga/2016-2017/2016-12-10 - 17-30 FC Koln 1 - 1 Dortmund
+- previous comments => Zwei hat alles im Griff. Hannover Meyang wird jetzt auch gleich wieder stehen.
+- comment => Sieht so aus, als wenn sich Reus der Angelegenheit ganz gerne annehmen würde, der ja in dieser Saison was Wunder, wo er heute erst zum dritten Mal in der Bundesliga spielt, noch auf sein Tor wartet.
+
+
+- id => 109326
+- game => germany_bundesliga/2016-2017/2016-12-20 - 22-00 Dortmund 1 - 1 FC Augsburg
+- previous comments => Es gibt viele Unterbrechungen und das liegt daran, dass viele Kombinationen und auch viele Spieler von BVB oftmals in 1-gegen-1-Situationen zu schnell sind für den FC Augsburg. Und wie hier gegen Dembélé dann halt auch einen Tick zu spät kommen.
+- comment => Mit 1-0 durch den Ex-Dortmunder Guy und dessen drittes Saisontor.
+
+
+- id => 112092
+- game => germany_bundesliga/2016-2017/2017-04-01 - 16-30 Schalke 1 - 1 Dortmund
+- previous comments => Die Verzeihung nach 26 Minuten ist auch eindeutig. Torschussverhältnis 3 zu 0 für Schalke.
+- comment => Die Verzeihung nach 26 Minuten ist auch eindeutig.
+
+
+- id => 112597
+- game => germany_bundesliga/2016-2017/2017-04-29 - 16-30 Dortmund 0 - 0 FC Koln
+- previous comments => Und dann hat sich das Trainerteam und Peter Stöger gedacht, oh, dann probieren wir den jungen Klünter mal aus. Und der hat es gut gemacht und sich so in die Mannschaft gespielt.
+- comment => Fünftes Spiel in Folge für ihn von Beginn an.
+
+
+- id => 113636
+- game => italy_serie-a/2014-2015/2015-04-11 - 21-45 Verona 0 - 3 Inter
+- previous comments => Salah. Tidy on the ball as well.
+- comment => Well schooled at Chelsea.
+
+
+- id => 116545
+- game => italy_serie-a/2014-2015/2015-04-29 - 21-45 Juventus 3 - 2 Fiorentina
+- previous comments => Free kick just outside the deep. Fiorentina currently holding that sixth place in the table.
+- comment => Which is the last European slot.
+
+
+- id => 116610
+- game => italy_serie-a/2014-2015/2015-04-29 - 21-45 Juventus 3 - 2 Fiorentina
+- previous comments => His first season last year under Conte went well. Now Pereira.
+- comment => Talks about him being sold on in fact.
+
+
+- id => 117974
+- game => italy_serie-a/2014-2015/2015-05-10 - 21-45 Lazio 1 - 2 Inter
+- previous comments => It is indeed a clear shot on goal. And an opportunity to score.
+- comment => And Mauricio has been given a red card on 24 minutes.
+
+
+- id => 117982
+- game => italy_serie-a/2014-2015/2015-05-10 - 21-45 Lazio 1 - 2 Inter
+- previous comments => But certainly I had a feeling the referee was going to pull out the red card on this occasion. It seemed as if Palacio definitely was beyond this man.
+- comment => Let's see it again.
+
+
+- id => 117983
+- game => italy_serie-a/2014-2015/2015-05-10 - 21-45 Lazio 1 - 2 Inter
+- previous comments => It seemed as if Palacio definitely was beyond this man. Let's see it again.
+- comment => He was definitely beyond this man.
+
+
+- id => 118132
+- game => italy_serie-a/2014-2015/2015-05-10 - 21-45 Lazio 1 - 2 Inter
+- previous comments => Massa spotting the foul by Guarin. Inter of course host Juventus next Saturday night at the San Siro.
+- comment => Juventus already been crowned champions and they play Real Madrid midweek.
+
+
+- id => 120294
+- game => italy_serie-a/2015-2016/2015-09-22 - 21-45 Udinese 2 - 3 AC Milan
+- previous comments => Немножко такая неожиданная и, наверное, даже сенсационная победа. И даже где-то победа несправедливая, потому что обыграли на выезде они Ювентус, футболисты Удины.
+- comment => Но нанесли за весь матч лишь один удар поворотом, который стал в итоге голевым.
+
+
+- id => 121200
+- game => italy_serie-a/2015-2016/2015-09-26 - 21-45 Napoli 2 - 1 Juventus
+- previous comments => Эрнанес и нарушает правила. Эрнанес даже не он, а до этого фолил Покба на Калихоне.
+- comment => Арбитр показывает, где был первый фо.
+
+
+- id => 122752
+- game => italy_serie-a/2016-2017/2016-08-20 - 19-00 AS Roma 4 - 0 Udinese
+- previous comments => И слишком ругать арбитров не будем. Сегодня помогают Дебело, Марзолоне, Карбона и Фиорито.
+- comment => Прорыв Эдмера и вопросы по поводу нарушения правил.
+
+
+- id => 127226
+- game => italy_serie-a/2016-2017/2016-09-21 - 21-45 AS Roma 4 - 0 Crotone
+- previous comments => Тут если еще и рассматривать результаты Еврокубка, так вообще картина такая, ни два, ни полтора. Вроде бы и победы есть довольно яркие.
+- comment => Как в первом туре над Удинезой 4-0.
+
+
+- id => 130417
+- game => italy_serie-a/2016-2017/2016-10-02 - 19-00 AC Milan 4 - 3 Sassuolo
+- previous comments => Как не получается у Милана Бескарлоса Бакки. А мы такие матчи уже видели.
+- comment => Как раз, по-моему, сам Дорио, когда Бакка остался на лавке, и в итоге вышел на замену и забил победный мяч.
+
+
+- id => 135069
+- game => italy_serie-a/2016-2017/2016-10-29 - 21-45 Juventus 2 - 1 Napoli
+- previous comments => Очень стабильный состав. Но есть выбор в полузащите.
+- comment => В частности, сегодня 42-й номером Амаду Дьявара.
+
+
+- id => 146143
+- game => italy_serie-a/2016-2017/2017-01-29 - 17-00 Sampdoria 3 - 2 AS Roma
+- previous comments => Нет вот этого же летучего взаимодействия между Праттом Мурриэлем и Хуальяреллой. Но и надо сказать, что Пратт прервал достаточно длинную серию.
+- comment => На 21 минуте он забивает.
+
+
+- id => 148032
+- game => italy_serie-a/2016-2017/2017-02-19 - 17-00 Chievo 1 - 3 Napoli
+- previous comments => Правда у него повреждения было в какой-то момент. Но 9 матчей за Дженну провел.
+- comment => 3 гола забил.
+
+
+- id => 175203
+- game => spain_laliga/2015-2016/2015-09-26 - 19-15 Real Madrid 0 - 0 Malaga
+- previous comments => Hablaba de los errores en el pase del Real Madrid, de esas pérdidas de balón. Pero muchas de esas pérdidas cada vez más están propiciadas por el acierto del Málaga y su buena situación en el terreno de juego.
+- comment => Sí, el Málaga está apretando bien sobre todo en el centro del campo y el Real Madrid, bueno, yo creo que tiene que tener un poquito más de paciencia y elaborar como los cinco primeros minutos que ha hecho llevar el balón de Marcelo a Carvajal sin tener ningún tipo de prisa.
+
+
+- id => 182770
+- game => spain_laliga/2016-2017/2016-08-21 - 21-15 Real Sociedad 0 - 3 Real Madrid
+- previous comments => Pero llega al despeje y Gareth Bale coloca el frentazo para colocarla lejos del alcance de Rulli. Siempre hay alguien que mete la pata cuando alguien marca un gol, pero no lo veo muy parente aquí.
+- comment => Ramos pega un gol muy bueno, Carvajal, el centro es buenísimo.
+
+
+- id => 183047
+- game => spain_laliga/2016-2017/2016-08-21 - 21-15 Real Sociedad 0 - 3 Real Madrid
+- previous comments => Saque para el Real Madrid. Además está teniendo imprecisiones permanentes la Real con la pelota.
+- comment => Está regalando mucho balón también.
+
+
+- id => 187746
+- game => spain_laliga/2016-2017/2016-09-21 - 23-00 Barcelona 1 - 1 Atl. Madrid
+- previous comments => Jugado sobre Griezmann. Griezmann, Felipe Luis.
+- comment => Calva la primera entrada de Sergio Busquets.
+
+
+- id => 191315
+- game => spain_laliga/2016-2017/2016-10-29 - 21-45 Barcelona 1 - 0 Granada CF
+- previous comments => Sí que debió tocar ahí. Vamos a ver.
+- comment => Efectivamente roza la pelota en Lombán.
+
+
+- id => 196167
+- game => spain_laliga/2016-2017/2017-01-21 - 18-15 Real Madrid 2 - 1 Malaga
+- previous comments => Veíamos la imagen de Marcelo, ahora más detenido en la repetición. Ya mira para el banquillo, y en el momento que se sienta, se pone la camiseta encima de la cabeza.
+- comment => Así que vamos a estar muy pendientes de lo que pueda suceder con el brasileño, que no es la primera vez en esta temporada que ya sufre una lesión muscular.
+
+
+- id => 201050
+- game => spain_laliga/2016-2017/2017-03-12 - 18-15 Dep. La Coruna 2 - 1 Barcelona
+- previous comments => Pero Luis Enrique siempre que ha modificado el sistema, a menos en cuanto a la manera como ocupa las posiciones en campo contrario, lo que no modifica es el retorno, cómo repliega el equipo cuando tiene que formar un bloque compacto cerca de su portero, cómo lo hace. Lo hace con un dibujo de, viene a ser más un 4-4-2 en este caso.
+- comment => El que irá de dentro hacia afuera será Sergi Roberto, que seguramente formará la línea de 4.
+
+
+- id => 201682
+- game => spain_laliga/2016-2017/2017-03-18 - 18-15 Ath Bilbao 1 - 2 Real Madrid
+- previous comments => No tiró, podía haber tirado, estaba en muy buena posición. Lo vio muy claro Cristiano que había apresurado su carrera y terminó el Madrid desaprovechando una gran ocasión de gol ante una jugada extraordinaria de Carvajal.
+- comment => En ningún caso andábamos equivocados cuando apuntábamos en la previa Santi la importancia de lo que pudiera pasar en la zona que ocupan los laterales del Real Madrid tanto en ataque como en defensa.
+
+
+- id => 202006
+- game => spain_laliga/2016-2017/2017-03-18 - 18-15 Ath Bilbao 1 - 2 Real Madrid
+- previous comments => Ronaldo sobre Iturraspe en ese lanzamiento largo, intenta avanzar por la izquierda del Atletic pero no la baja Íñigo Lecue. Así que saque de banda para Carvajal en el tramo final ya de este primer acto.
+- comment => Lecue que ha jugado ya 90 minutos, ¿no?
+
+
+- id => 203038
+- game => spain_laliga/2016-2017/2017-04-02 - 21-45 Granada CF 1 - 4 Barcelona
+- previous comments => el granada con 5-3-2 con los tres africanos en el centro ahí está jugando la pelota Uche intenta con Waka se coloca en el centro de la defensa de la defensa del medio campo ahí está Uche que engancha esa pelota tras el rechace ha tocado la pelota para Sonier apertura para Fulker ahí está cerrando ya Nismar para el Barcelona presionado Uche con troca la pelota hacia atrás para la posición de Lombán que sale jugando para Gastón Silva pelotazo largo de Gastón Silva para buscar a la internada a conseguir llegar a esa pelota Pereira ahí protegiéndola sobre la misma esquina llegó la ayuda defensiva sacó la pelota fuera del terreno de juego el Barcelona va a poner el balón en movimiento Héctor que lo va a hacer en largo buscando probablemente la prolongación para la cabeza de Kravitz ahí intenta bueno a lo de la y tan largo no sea se ha pasado de toda la línea de atacantes atención al resbalón se lleva la pelota nuevamente el granada por mediación de Fulker que intenta progresar hasta la línea de fondo quiere sacar el pase tendrá una segunda oportunidad saque de banda protegió Fulker ante el Barcelona y el Huacazo para poner la larga o acaso que va a buscar la cabeza arriba de Kravitz intenta llegar el balón al balcón del área toca la pelota hacia atrás Pereira consigue despejar contundente el Barcelona y atención que monta la contra con Luis Suárez y se ha hecho con esa pelota en el círculo central apertura para Neymar Neymar que encara sobre Saunier, ahí va Neymar quiere progresar no ha podido hacerlo de primeras y llevó definitivamente la pelota Fulker la saca fuera del terreno de juego y será saque de banda para el Barcelona, juega la pelota Neymar el cambio de orientación hacia la posición de Sergi Roberto, Sergi Roberto que tiene el apoyo de André Gómez recibe el portugués se ofrece raquitis raquitis de primeras antes de que pueda llegar la presión de Agbam, con el balón hacia atrás el Barça Mascherano para Ter Stegen, la va a pedir Sergi Busquets, un cambio de posición en el Barça interesante, ha empezado André Gómez por la derecha y donde esperábamos a Rafinha pero por la derecha arriba en el 4-3-3 y Rafinha está jugando de interior a la izquierda de Busquets, ahí está saliendo Jordi Alba en cuanto juega con 4 atrás se le ilumina la cara al de Hospitalet porque le permite hacer su juego más habitual que es progresar sobre la banda, ahí está Raquit intentando meter una pelota por dentro fuera de juego, levantó la bandera en línea por fuera de juego de Luis Suárez al pase del Croata Sí, a mí me sorprende ver a André Gómez en este demarcación Vamos a ver la jugada repetida, ahí está, movimiento por detrás de la defensa, acierta el asistente con atención al regalo, la pelota de... bueno lo ha enmendado Gastón da Silva porque había regalado un balón a Raquitis con muchísimo peligro, recuperó la pelota Rafinha para el Barcelona, ha tocado Sergi Roberto para Jordi Alba, juega con a Sergio Busquets, apertura de Jordi Alba a la banda, recibe Neymar en cara sobre Fulquier, le dobla Jordi Alba, el rechace de Fulquier nuevamente para el brasileño, cambio de orientación para Sergi Roberto, se suben los dos laterales, se quedan atrás Matié y Mascherano, Mascherano que recibe en el círculo central, le va a presionar a Ispereira, también lo hace Kravets sobre la posición de Thierry Matié, el balón para Jordi Alba, cierra Uche, toca la pelota por dentro, Rafinha en esa posición de interior, el balón en corto para Neymar, Neymar que intenta progresar, amaga para jugar por dentro, aguanta la pelota, va a buscar en el centro a Sergi Busquets, toca el balón para Rafinha, Sergi Busquets de primeras con rapidez del Barcelona, el balón para Neymar, Neymar va a buscar a Rafinha, Rafinha en la frontal, intenta irse en velocidad, no lo consigue antes Sonny, intenta aguantar la pelota Kravets, pelea con Matié, se le va a quedar el balón fuera del terreno de juego, así que saque de banda para el Barcelona.
+- comment => Yo creo que Luis Enrique piensa y que Rafinha jugando de interior va a participar mucho más y a la hora de mover la pelota al mejor que André Gómez y yo estoy de acuerdo con él y aleja completamente de la circulación del balón al portugués André Gómez que está aquí en la derecha, va a entrar mucho menos en juego.
+
+
+- id => 208566
+- game => spain_laliga/2016-2017/2017-04-29 - 17-15 Real Madrid 2 - 1 Valencia
+- previous comments => ¿Qué os parece? A mí me parece que se engancha la pierna pero que no hace nada Nacho para derribarlo.
+- comment => Bueno, sus forcejeos han enganchado y yo creo que ahí el jugador del Valencia pues está listo, se ha dejado caer y el árbitro pues ha pitado falta.
+
+
+- id => 210477
+- game => spain_laliga/2016-2017/2017-05-14 - 21-00 Real Madrid 4 - 1 Sevilla
+- previous comments => Todo el mundo estaba mirando para otro lado. Todo el mundo estaba pensando quién le puede pegar a esa falta.
+- comment => ¿Cuáles son los especialistas del Real Madrid?
+
+
+- id => 212648
+- game => spain_laliga/2016-2017/2017-05-21 - 21-00 Barcelona 4 - 2 Eibar
+- previous comments => Llega sin embargo antes Undercapa, sigue peleando Capa también Busquets, que desde el suelo se rehace y entrega de Taco para Neymar. Neymar a la frontal, Messi recibe, Messi encarando, Messi entre dos, Iniesta de Taco, la busca Suárez, no, se la queda Joel.
+- comment => Vaya jugada y viene de ese balón que ha luchado Busquets.
+
+
+- id => 213077
+- game => spain_laliga/2016-2017/2017-05-21 - 21-00 Malaga 0 - 2 Real Madrid
+- previous comments => Con qué calidad ahí va a intentar meter el balón para Keco. Keco en la banda, encarando sobre Sergio Ramos que hace la cobertura para Marcelo.
+- comment => Busca la pared, la gana Keco, la pone en el punto de penalti, se le va Danilo, evita el remate de Reccio cuando la saca el Real Madrid buscando la contra.
