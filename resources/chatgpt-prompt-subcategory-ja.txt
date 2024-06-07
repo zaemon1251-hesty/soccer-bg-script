@@ -1,23 +1,21 @@
-与えられたコメントが、直前のコメントと関係あるかどうかを分類してください。
-関係がある場合は文脈由来、関係がない場合は文脈外としてください。
-
+Classify whether the given comment is contextually related or unrelated to the previous comments.
 
 previous comments: Without Murtosaka, Koselnick, they'd be vulnerable on set-pieces. These are always awkward to defend.
 comment: Still standing firm, 25 minutes gone, 0-0.
-category: 文脈外
+category: unrelated
 
-previous comments => It's not the kind of quality that Çalhanoğlu had from a dead ball in a similar position. Eight Bundesliga goals last season for Çalhanoğlu.
-comment => Six of them were free kicks.
-category => 文脈由来
+previous comments: It's not the kind of quality that Çalhanoğlu had from a dead ball in a similar position. Eight Bundesliga goals last season for Çalhanoğlu.
+comment: Six of them were free kicks.
+category: related
 
 previous comments: Barça are very close to the cup. Real Madrid have four points ahead of them.
 comment: Two points for Malaga and two points for Barcelona.
-category: 文脈由来
+category: related
 
 previous comments: I think the necessity of the club is that they've got to win games straight away. I think that if they do lose today, it would come under some pressure, Arsene Wenger.
 comment: Speaking to fans before the game, they certainly weren't coming into the ground on spy, I don't know whether you felt the same thing, Martin.
-category: 文脈由来
+category: related
 
 previous comments: We will leave the first 15 minutes later. There is no clear position in both goals.
 comment: There is a moment when Atletico Madrid checks the goal twice.
-category: 文脈由来
+category: related

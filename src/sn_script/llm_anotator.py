@@ -3,7 +3,7 @@ from openai import OpenAI
 import json
 import os
 import pandas as pd
-from collections import namedtuple
+from dataclasses import dataclass, field
 import yaml
 from loguru import logger
 from datetime import datetime
@@ -11,7 +11,7 @@ from transformers import AutoTokenizer
 import transformers
 import torch
 from tqdm import tqdm
-
+from pathlib import Path
 
 try:
     from sn_script.config import (
@@ -23,6 +23,7 @@ try:
         half_number,
         model_type,
     )
+    from sn_script.csv_utils import gametime_to_seconds
 except ModuleNotFoundError:
     import sys
 
@@ -36,15 +37,22 @@ except ModuleNotFoundError:
         half_number,
         model_type,
     )
+    from src.sn_script.csv_utils import gametime_to_seconds
 
 # pandasのprogress_applyを使うために必要
 tqdm.pandas()
 
 
 # プロンプト作成用の引数
-PromptArgments = namedtuple(
-    "PromptArgments", ["id", "comment", "game", "previous_comments"]
-)
+@dataclass
+class PromptArgments:
+    id: int
+    comment: str
+    game: str
+    previous_comments: list[str] = field(default_factory=lambda: [])
+    gap: int | None = None
+    start: str | None = None
+    end: str | None = None
 
 
 # ALL_CSV_PATH = Config.target_base_dir / f"denoised_{half_number}_tokenized_224p_all.csv"
@@ -304,53 +312,97 @@ def get_messages(comment_id: int, prompt_config: dict) -> list[str]:
     return messages
 
 
-def create_target_prompt(comment_id: int) -> str:
-    target_comment = all_comment_df.iloc[comment_id]
+def create_target_prompt(
+    comment_id: int,
+    csv_mode: bool = False,
+    include_debug_info: bool = False,
+) -> str:
+
+    if csv_mode:
+        func = get_formatted_comment_csv
+    else:
+        func = get_formatted_comment
+
+    target_comment_data = all_comment_df.iloc[comment_id]
+
+    # TODO ハードコーディングをなくすべき
     context_length = 2
 
-    previous_comments = (
-        all_comment_df[
-            (all_comment_df["game"] == target_comment["game"])
-            & (all_comment_df.index < comment_id)
-        ]
-        .tail(context_length)["text"]
-        .tolist()
-    )
+    previous_comments_data = all_comment_df[
+        (all_comment_df["game"] == target_comment_data["game"])
+        & (all_comment_df.index < comment_id)
+    ].tail(context_length)
+
+    previous_comments = previous_comments_data["text"].tolist()
+
+    if len(previous_comments_data) > 0:
+        target_comment_start = gametime_to_seconds(target_comment_data["start"])
+        previous_comments_start = gametime_to_seconds(
+            previous_comments_data.iloc[-1]["start"]
+        )
+        start_gap_from_previous = max(target_comment_start - previous_comments_start, 0)
+    else:
+        start_gap_from_previous = None
 
     target_prompt_args = PromptArgments(
-        comment_id, target_comment["text"], target_comment["game"], previous_comments
+        comment_id,
+        target_comment_data["text"],
+        target_comment_data["game"],
+        previous_comments,
+        start_gap_from_previous,
+        start=target_comment_data["start"],
+        end=target_comment_data["end"],
     )
 
-    message = _create_target_prompt(target_prompt_args)
+    message = func(target_prompt_args)
     return message
 
 
-def _create_target_prompt(prompt_args: PromptArgments) -> str:
+def get_formatted_comment(prompt_args: PromptArgments) -> str:
     """分類対象のコメントに関するプロンプトを作成する"""
 
     message = f"""
-- id => {prompt_args.id}
-- game => {prompt_args.game}
-- previous comments => {" ".join(prompt_args.previous_comments)}
-- comment => {prompt_args.comment}
+id => {prompt_args.id}
+previous comments => {" ".join(prompt_args.previous_comments)}
+start gap (seconds) from previous => {prompt_args.gap}
+comment => {prompt_args.comment}
+category =>
 """
 
     return message
 
 
-def output_target_prompt(ANNOTATION_CSV_PATH, TARGET_PROMPT_CSV_PATH, filter=False):
+def get_formatted_comment_csv(prompt_args: PromptArgments) -> str:
+    message = f'''{prompt_args.id},{prompt_args.game},{prompt_args.start},{prompt_args.end},{prompt_args.gap},"{" ".join(prompt_args.previous_comments)}","{prompt_args.comment}"'''  # noqa
+    return message
+
+
+def output_target_prompt(
+    ANNOTATION_CSV_PATH: Path,
+    TARGET_FILE_PATH: Path,
+    filter: bool = False,
+    csv_mode: bool = False,
+    include_debug_info: bool = False,
+):
+    if csv_mode and TARGET_FILE_PATH.suffix != ".csv":
+        raise ValueError(f"Invalid file extension:{TARGET_FILE_PATH.suffix}")
+
     annotation_df = pd.read_csv(ANNOTATION_CSV_PATH)
 
     # 付加的情報が含まれているコメントのみを抽出する
     if filter:
         annotation_df = annotation_df[annotation_df[binary_category_name] == 1]
 
-    targe_prompt_list = []
+    target_list = []
     for comment_id in annotation_df["id"]:
-        targe_prompt_list.append(create_target_prompt(comment_id))
+        target_list.append(
+            create_target_prompt(comment_id, csv_mode, include_debug_info)
+        )
 
-    with open(TARGET_PROMPT_CSV_PATH, "w") as f:
-        f.write("\n".join(targe_prompt_list))
+    with open(TARGET_FILE_PATH, "w") as f:
+        f.write("\n".join(target_list))
+
+    return 0
 
 
 if __name__ == "__main__":
@@ -376,6 +428,11 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--filter",
+        help="filter comments that contain additional information",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--csv_mode",
         help="filter comments that contain additional information",
         action="store_true",
     )
@@ -412,8 +469,14 @@ if __name__ == "__main__":
         TARGET_PROMPT_CSV_PATH = (
             Config.target_base_dir.parent
             / "resources"
-            / f"{random_seed}_{half_number}_target_prompt_{args.filter}.txt"
+            / f"{random_seed}_{half_number}_target_prompt_{args.filter}.csv"
         )
-        output_target_prompt(ANNOTATION_CSV_PATH, TARGET_PROMPT_CSV_PATH, args.filter)
+        output_target_prompt(
+            ANNOTATION_CSV_PATH,
+            TARGET_PROMPT_CSV_PATH,
+            args.filter,
+            args.csv_mode,
+            False,
+        )
     else:
         raise ValueError(f"Invalid type:{args.type}")
