@@ -202,6 +202,26 @@ def fill_csv_from_json():
     annotation_df.to_csv(LLM_ANOTATION_CSV_PATH, index=False, encoding="utf-8_sig")
 
 
+def split_dataset_csv():
+    subcategory_annotation_csv_path = (
+        Config.target_base_dir / "1_10_target_prompt_付加的情報のみ抽出.csv"
+    )
+    df = pd.read_csv(subcategory_annotation_csv_path)
+    # split samples into fewshot : val = 20 : 50 from 70 samples
+    fewshot_df = df.sample(n=20, random_state=random_seed)
+    val_df = df.drop(fewshot_df.index).sample(n=50, random_state=random_seed)
+    fewshot_df.to_csv(
+        Config.target_base_dir
+        / f"{half_number}_{random_seed}_fewshot_subcategory_annotation.csv",
+        index=False,
+    )
+    val_df.to_csv(
+        Config.target_base_dir
+        / f"{half_number}_{random_seed}_val_subcategory_annotation.csv",
+        index=False,
+    )
+
+
 if __name__ == "__main__":
     from argparse import ArgumentParser
 
@@ -216,5 +236,7 @@ if __name__ == "__main__":
         add_column_to_csv()
     elif args.type == "dump":
         fill_csv_from_json()
+    elif args.type == "split":
+        split_dataset_csv()
     else:
         raise ValueError(f"Invalid type: {args.type}")

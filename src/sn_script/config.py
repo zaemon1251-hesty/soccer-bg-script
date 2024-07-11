@@ -25,7 +25,7 @@ subcategory_name = "小分類"
 
 
 # ターゲットの設定
-random_seed = 10
+random_seed = 93
 half_number = 1
 
 # 使用するLLMのモデル名

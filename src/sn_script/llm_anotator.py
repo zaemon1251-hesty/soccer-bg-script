@@ -219,7 +219,7 @@ def classify_comment(model_type: str, comment_id: int, target="binary") -> dict:
     else:
         raise ValueError(f"Invalid target:{target}")
 
-    messages = get_messages(comment_id, prompt_config)
+    messages = get_messages(comment_id, prompt_config, target)
 
     if model_type == "meta-llama/Llama-2-70b-chat-hf":
         return _classify_comment_with_llama(messages)
@@ -271,7 +271,7 @@ def _classify_comment_with_llama(messages: list[str]) -> dict:
         return json.loads(response_text)
 
 
-def get_messages(comment_id: int, prompt_config: dict) -> list[str]:
+def get_messages(comment_id: int, prompt_config: dict, target: str) -> list[str]:
     messages = []
 
     if comment_id not in all_comment_df.index:
@@ -302,7 +302,7 @@ def get_messages(comment_id: int, prompt_config: dict) -> list[str]:
 
     # max_history = 5 & game == game
 
-    target_prompt = create_target_prompt(comment_id)
+    target_prompt = create_target_prompt(comment_id, target=target)
     messages.append(
         {
             "role": "user",
@@ -316,6 +316,7 @@ def create_target_prompt(
     comment_id: int,
     csv_mode: bool = False,
     include_debug_info: bool = False,
+    target: str = "binary",
 ) -> str:
 
     if csv_mode:
@@ -362,11 +363,9 @@ def get_formatted_comment(prompt_args: PromptArgments) -> str:
     """分類対象のコメントに関するプロンプトを作成する"""
 
     message = f"""
-id => {prompt_args.id}
 previous comments => {" ".join(prompt_args.previous_comments)}
 start gap (seconds) from previous => {prompt_args.gap}
 comment => {prompt_args.comment}
-category =>
 """
 
     return message
@@ -462,10 +461,12 @@ if __name__ == "__main__":
         main(args.target)
     elif args.type == "output_target_prompt":
         # ChatGPT用のプロンプトを作成する
-        ANNOTATION_CSV_PATH = (
-            Config.target_base_dir
-            / "20240306_1_10_supplementary_comments_annotation.csv"
+
+        # target_filename = "20240306_1_10_supplementary_comments_annotation.csv"
+        target_filename = (
+            f"{half_number}_{random_seed}_supplementary_comments_annotation.csv"
         )
+        ANNOTATION_CSV_PATH = Config.target_base_dir / target_filename
         TARGET_PROMPT_CSV_PATH = (
             Config.target_base_dir.parent
             / "resources"
@@ -479,4 +480,4 @@ if __name__ == "__main__":
             False,
         )
     else:
-        raise ValueError(f"Invalid type:{args.type}")
+        raise ValueError(f"Invalid type: {args.type}")

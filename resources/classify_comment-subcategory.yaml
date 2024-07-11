@@ -1,54 +1,53 @@
 description: |+
-  Please classify the given soccer commentary text and return a JSON object.
-  The text includes supplementary information.
-  This supplementary information consists of data and numerical information, including statistics, from current and past matches, events, and research conducted from past interviews.
-  Extract key phrases from the comments, describe the reason for classification based on those, and finally determine the category.
-
-  The classification categories are as follows:
-  1.1 Background knowledge about an individual: Characteristics (appearance, personality, etc.), relationships with others, career information, skills, role within the team, physical condition, and injuries
-  1.4 Past matches or season-long performance, stats, and data related to an individual
-  1.5 Current match performance, stats, and data related to an individual
-  1.8 Other information about an individual (episodes, comments, etc.)
-  2.1 Background knowledge about a team: Characteristics (team style, etc.), mentions of transfers,
-  2.3 Past matches or season-long performance, stats, and data related to a team
-  2.4 Current match information, performance, stats, and data related to a team
-  2.5 Other information about a team (team owner stories, business discussions, etc.)
-  3.3 Others
+  Classify whether the given comment is contextually related or unrelated to the previous comments.
 
 shots:
   - 1:
     user: |+
-      - game => 2016-08-14 - 18-00 Arsenal 3 - 4 Liverpool
-      - previous comments => Some good forwards here, was it the heel of Chambers that just took it away? => Just there. It's an important touch. Without Murtosaka, Koselnick, they'd be vulnerable on set-pieces. These are always awkward to defend.
-      - comment => Still standing firm, 25 minutes gone, 0-0.
+      gap (second) => 4
+      previous comments => Wanyama. It's a penalty.
+      comment => The grappling has gone on throughout the game.
     assistant: |
-      {"clues": ["25 minutes gone", "0-0"], "reason": "Including team match data",  "category": 2.3}
+      subcategory => Irrelevant
   - 3:
     user: |+
-      - game => 2015-08-29 - 19-30 Bayern Munich 3 - 0 Bayer Leverkusen
-      - previous comments => What an impact he can have. Is he who takes the corner kick? Wendel sends it back. It's not the kind of quality that Çalhanoğlu had from a dead ball in a similar position. Eight Bundesliga goals last season for Çalhanoğlu.
-      - comment => Six of them were free kicks.
+      gap (second) => 0
+      previous comments => ¿Qué os parece? A mí me parece que se engancha la pierna pero que no hace nada Nacho para derribarlo.
+      comment => Bueno, sus forcejeos han enganchado y yo creo que ahí el jugador del Valencia pues está listo, se ha dejado caer y el árbitro pues ha pitado falta.
     assistant: |
-      {"clues": ["Six of them", "free kicks"], "reason": "Including individual player's stats", "category": 1.4}
+      subcategory => Relevant
   - 7:
     user: |+
-      - game: 2017-05-21 - 21-00 Malaga 0 - 2 Real Madrid
-      - previous comments: 43-1. Real Madrid are very close to the league title. They're up 6 points from Barcelona. Barça are very close to the cup. Real Madrid have four points ahead of them.
-      - comment: Two points for Malaga and two points for Barcelona.
+      gap (second) => 8
+      previous comments => Lo que en Inglaterra sería también como, si no hecho así bastante probable, la llegada aparte de Memphis Depay que ya ha fichado, de Madhumels. Hablando un poco de los centrales Madhumels.
+      comment => Se está especulando con la posibilidad de que al final Pogba vuelva.
     assistant: |
-      {"clues": ["Two points for Malaga", "two points for Barcelona"], "reason": "Including team match data", "category": 2.3}
+      subcategory => Irrelevant
   - 15:
     user: |+
-      game: 2016-08-14 - 18-00 Arsenal 3 - 4 Liverpool
-      previous comments: I think the necessity of the club is that they've got to win games straight away. I think that if they do lose today, it would come under some pressure, Arsene Wenger.
-      comment: Speaking to fans before the game, they certainly weren't coming into the ground on spy, I don't know whether you felt the same thing, Martin.
+      gap (second) => 6
+      previous comments => Voilà Verratti tout à l'heure lorsqu'il a peut-être perdu sa chaussure. Lorsqu'il a été touché surtout.
+      comment => On sait qu'il souffrait du mollet.
     assistant: |
-      {"clues": ["Speaking to fans", "they", "weren't coming into the ground on spy"], "reason": "Including the contents of interviews with spectators", "category": 3.3}
-  - 17:
+      subcategory => Relevant
+  - 19:
     user: |+
-      - game: 2015-09-15 - 21-45 Galatasaray 0 - 2 Atl. Madrid
-      - previous comments: It is not effective. Rieto touched. Mustera. We will leave the first 15 minutes later. There is no clear position in both goals.
-      - comment: There is a moment when Atletico Madrid checks the goal twice.
+      gap (second) => 3
+      previous comments => No tiró, podía haber tirado, estaba en muy buena posición. Lo vio muy claro Cristiano que había apresurado su carrera y terminó el Madrid desaprovechando una gran ocasión de gol ante una jugada extraordinaria de Carvajal.
+      comment => En ningún caso andábamos equivocados cuando apuntábamos en la previa Santi la importancia de lo que pudiera pasar en la zona que ocupan los laterales del Real Madrid tanto en ataque como en defensa.
     assistant: |
-      {"clues": ["Atletico Madrid", "checks the goal twice"], "reason": "Including event information of the team's match", "category": 2.3}
-
+      subcategory => Relevant
+  - 20:
+    user: |+
+      gap (second) => 6
+      previous comments => Massa spotting the foul by Guarin. Inter of course host Juventus next Saturday night at the San Siro.
+      comment => Juventus already been crowned champions and they play Real Madrid midweek.
+    assistant: |
+      subcategory => Relevant
+  - 21:
+    user: |+
+      gap (second) => 11
+      previous comments => Quiero parar un poco en él y subrayarlo porque me encantaría que nos lo repitieran además. Porque ante una buena presión, que es la que está haciendo el Burnley, no es perfecta, pero yo creo que tiene bastante nivel.
+      comment => El Chelsea ha salido con un simple toque, gracias al dominio del espacio y a la visión y la capacidad para jugar de primera de Sefábregas que con un simple toque ha desarmado una presión entera.
+    assistant: |
+      subcategory => Relevant

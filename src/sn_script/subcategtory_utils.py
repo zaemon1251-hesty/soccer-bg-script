@@ -33,17 +33,15 @@ LLM_ANOTATION_CSV_ALL_PATH = (
     Config.target_base_dir / f"{model_type}_500game_{half_number}_llm_annotation.csv"
 )
 SUP_SUBCATEGORY_COMMENTS_TXT_PATH = (
-    Config.target_base_dir
-    / f"20240301_{half_number}_{random_seed}_supplementary_comments.txt"
+    Config.target_base_dir / f"{half_number}_{random_seed}_supplementary_comments.txt"
 )
 SUBCATEGORY_COMMENTS_JSONL_PATH = (
-    Config.target_base_dir
-    / f"20240217_{half_number}_{random_seed}_supplementary_comments.jsonl"
+    Config.target_base_dir / f"{half_number}_{random_seed}_supplementary_comments.jsonl"
 )
 
 SUBCATEGORY_ANNOTATION_CSV_PATH = (
     Config.target_base_dir
-    / f"20240306_{half_number}_{random_seed}_supplementary_comments_annotation.csv"
+    / f"{half_number}_{random_seed}_supplementary_comments_annotation.csv"
 )
 SUBCATEGORY_LLM_CSV_PATH = (
     Config.target_base_dir / "{file_name_prefix}_subcategory_llm_annotation.csv"
@@ -74,6 +72,9 @@ def write_supplementary_comments_txt(df: pd.DataFrame, path: str) -> None:
 
 
 def run_write_supplementary_comments_txt() -> None:
+    """
+    アノテーション済みcsv;SUP_SUBCATEGORY_COMMENTS_TXT_PATH をtxtファイルに書き出す
+    """
     all_comment_df = pd.read_csv(LLM_ANOTATION_CSV_ALL_PATH)
     write_supplementary_comments_txt(all_comment_df, SUP_SUBCATEGORY_COMMENTS_TXT_PATH)
     logger.info("Done writing supplementary_comments")
@@ -82,37 +83,55 @@ def run_write_supplementary_comments_txt() -> None:
 def generate_subcategory_jsonlines():
 
     def read_and_convert_to_jsonl(input_file_path, output_file_path):
+        """
+        ...
+        id => 12121
+        game => hogehoge
+        previous comments => これは前のコメントです
+        comment => これはコメントです
+        output: {"category": 1}
+        id => 12122
+        game=> fugafuga
+        ...
+
+        のようなテキストファイルを読み込んで、以下のようなJSON Lines形式のファイルに変換する
+        {"id": "12121", "game": "hogehoge", "previous_comments": "これは前のコメントです", "comment": "これはコメントです", "output": {"category": 1}}
+        {"id": "12122", "game": "fugafuga", ...}
+        """
         with open(input_file_path, "r", encoding="utf-8") as file:
             lines = file.readlines()
 
         output_data = []
         current_entry = {}
-        should_add_entry = False  # 現在のエントリを出力データに追加するかどうかのフラグ
 
         for idx, line in enumerate(lines):
             # 新しいエントリの開始
             if "id =>" in line:
                 # 前のエントリにoutputが含まれていれば、出力データに追加
-                if should_add_entry:
+                if current_entry:
                     output_data.append(current_entry)
                 # 新しいエントリの準備
                 current_entry = {"id": line.split("=>")[1].strip()}
-                should_add_entry = False  # フラグをリセット
             elif "game =>" in line:
-                current_entry["game"] = line.split("=>")[1].strip()
+                # 不要（かもしれない）な情報なのでスキップ
+                # current_entry["game"] = line.split("=>")[1].strip()
+                pass
             elif "previous comments =>" in line:
                 current_entry["previous_comments"] = line.split("=>")[1].strip()
             elif "comment =>" in line:
                 current_entry["comment"] = line.split("=>")[1].strip()
+            elif "start gap (seconds) from previous =>" in line:
+                current_entry["start gap (seconds) from previous"] = line.split("=>")[
+                    1
+                ].strip()
             elif "output:" in line:
                 # JSON形式の出力をパースして辞書に追加し、エントリを出力データに追加するフラグを立てる
                 output_json = line.split("output:")[1].strip()
                 logger.info(f"line: {idx}\noutput_json: {output_json}")
                 current_entry["output"] = json.loads(output_json)
-                should_add_entry = True
 
         # ファイルの終わりに達して、最後のエントリにoutputが含まれていれば出力データに追加
-        if should_add_entry:
+        if current_entry != {}:
             output_data.append(current_entry)
 
         # JSON Lines形式で出力ファイルに書き込む
@@ -128,6 +147,14 @@ def generate_subcategory_jsonlines():
         SUP_SUBCATEGORY_COMMENTS_TXT_PATH, SUBCATEGORY_COMMENTS_JSONL_PATH
     )
     logger.info(f"Done writing {SUBCATEGORY_COMMENTS_JSONL_PATH}")
+
+
+def create_annotation_csv():
+    all_comment_df = pd.read_csv(LLM_ANOTATION_CSV_ALL_PATH)
+
+    supplementary_comments_df = sample_supplementary_comments(all_comment_df, 100)
+
+    supplementary_comments_df.to_csv(SUBCATEGORY_ANNOTATION_CSV_PATH, index=False)
 
 
 def statistics_subcategory():
@@ -188,8 +215,11 @@ def create_annotation_csv_from_jsonl():
 def create_llm_annotation_csv(file_name_prefix: str):
     annotation_df = pd.read_csv(SUBCATEGORY_ANNOTATION_CSV_PATH)
     annotation_df[subcategory_name] = pd.NA
+    llm_target_csv_path = str(SUBCATEGORY_LLM_CSV_PATH).format(
+        file_name_prefix=file_name_prefix
+    )
     annotation_df.to_csv(
-        str(SUBCATEGORY_LLM_CSV_PATH).format(file_name_prefix=file_name_prefix),
+        llm_target_csv_path,
         index=False,
     )
 
@@ -213,6 +243,8 @@ if __name__ == "__main__":
         statistics_subcategory()
     elif args.type == "jsonl2csv":
         create_annotation_csv_from_jsonl()
+    elif args.type == "csv":
+        create_annotation_csv()
     elif args.type == "llmcsv":
         create_llm_annotation_csv(args.prefix)
     else:
