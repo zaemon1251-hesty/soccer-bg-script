@@ -1,21 +1,22 @@
 from __future__ import annotations
-import pandas as pd
-from typing_extensions import TypedDict
-import ast
-from loguru import logger
-import evaluate
 
-from abc import ABC
+import ast
+from abc import ABC, abstractmethod
+
+import evaluate
+import pandas as pd
+from loguru import logger
+from typing_extensions import TypedDict
 
 try:
     from sn_script.config import (
         Config,
         binary_category_name,
         category_name,
-        subcategory_name,
-        random_seed,
         half_number,
         model_type,
+        random_seed,
+        subcategory_name,
     )
 except ModuleNotFoundError:
     import sys
@@ -25,10 +26,10 @@ except ModuleNotFoundError:
         Config,
         binary_category_name,
         category_name,
-        subcategory_name,
-        random_seed,
         half_number,
         model_type,
+        random_seed,
+        subcategory_name,
     )
 
 
@@ -64,6 +65,8 @@ class EvalIndicator(TypedDict):
 
 
 class EvaluateAnnotationBase(ABC):
+
+    @abstractmethod
     def evaluate(self) -> LlmAnnotationResult:
         raise NotImplementedError
 
@@ -339,9 +342,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     time_str = pd.Timestamp.now().strftime("%Y%m%d-%H%M%S")
     logger.add(
-        "logs/evaluate_llm_annotation_{time}.log".format(
-            time=time_str,
-        )
+        f"logs/evaluate_llm_annotation_{time_str}.log"
     )
     if args.preprocess:
         preprocess_human_annotation()

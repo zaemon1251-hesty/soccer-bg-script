@@ -1,5 +1,6 @@
-import pandas as pd
 import json
+
+import pandas as pd
 from loguru import logger
 
 try:
@@ -7,10 +8,10 @@ try:
         Config,
         binary_category_name,
         category_name,
-        subcategory_name,
-        random_seed,
         half_number,
         model_type,
+        random_seed,
+        subcategory_name,
     )
     from sn_script.llm_anotator import create_target_prompt
 except ModuleNotFoundError:
@@ -99,7 +100,7 @@ def generate_subcategory_jsonlines():
             "comment": "これはコメントです", "output": {"category": 1}}
         {"id": "12122", "game": "fugafuga", ...}
         """
-        with open(input_file_path, "r", encoding="utf-8") as file:
+        with open(input_file_path, encoding="utf-8") as file:
             lines = file.readlines()
 
         output_data = []
@@ -160,7 +161,7 @@ def create_annotation_csv():
 
 def statistics_subcategory():
     subcategory_data = []
-    with open(SUBCATEGORY_COMMENTS_JSONL_PATH, "r", encoding="utf-8") as file:
+    with open(SUBCATEGORY_COMMENTS_JSONL_PATH, encoding="utf-8") as file:
         lines = file.readlines()
         for line in lines:
             comment_data = json.loads(line)
@@ -193,7 +194,7 @@ def statistics_subcategory():
 def create_annotation_csv_from_jsonl():
     all_comment_df = pd.read_csv(LLM_ANOTATION_CSV_ALL_PATH)
     anotation_data = []
-    with open(SUBCATEGORY_COMMENTS_JSONL_PATH, "r", encoding="utf-8") as file:
+    with open(SUBCATEGORY_COMMENTS_JSONL_PATH, encoding="utf-8") as file:
         lines = file.readlines()
         for line in lines:
             comment_data = json.loads(line)

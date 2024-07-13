@@ -1,24 +1,26 @@
 from __future__ import annotations
+
+import datetime
+import json
 import sys
+from collections import defaultdict
 from dataclasses import dataclass
 from glob import glob
-import json
-from collections import defaultdict
-import pandas as pd
-import datetime
 from logging import getLogger
+
+import pandas as pd
 
 logger = getLogger(__name__)
 
 sys.path.append("/raid_elmo/home/lr/moriy/sn-caption")
 
-import Benchmarks.TemporallyAwarePooling.src.dataset as dataset
+from Benchmarks.TemporallyAwarePooling.src import dataset
 
 tzinfo = datetime.timezone(datetime.timedelta(hours=9))
 
 
 @dataclass(frozen=True)
-class Config(object):
+class Config:
     SoccerNet_path = "/raid_elmo/home/lr/moriy/SoccerNet/"
     features = "baidu_soccer_embeddings.npy"
     output_file_pattern = "**/outputs/test/**/results_dense_captioning.json"
@@ -66,7 +68,7 @@ def get_output_texts(output_file_pattern: str):
     output_files = glob(pattern, recursive=True)
     print(output_files)
     for filepath in output_files:
-        with open(filepath, "r") as f:
+        with open(filepath) as f:
             data = json.load(f)
             if "predictions" not in data:
                 continue

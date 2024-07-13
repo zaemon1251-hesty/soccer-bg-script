@@ -1,5 +1,5 @@
-from pathlib import Path
 import os
+from pathlib import Path
 
 src_dir = Path("/Users/heste/Downloads/SoccerNet/")
 dst_dir = Path("/Users/heste/workspace/sn-caption") / "data"
@@ -8,7 +8,7 @@ first_game_suffix = "1_720p.mkv"
 second_game_suffix = "2_720p.mkv"
 
 target_games = []
-with open(Path(__file__).parent.parent / "data" / "video_files.txt", "r") as f:
+with open(Path(__file__).parent.parent / "data" / "video_files.txt") as f:
     for line in f:
         target_games.append(line.strip().rstrip("/"))
 

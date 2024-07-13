@@ -1,21 +1,23 @@
 from __future__ import annotations
-import pandas as pd
-from pathlib import Path
-from functools import wraps
-import time
-from loguru import logger
+
 import csv
 import json
+import time
+from functools import wraps
+from pathlib import Path
+
+import pandas as pd
+from loguru import logger
 
 try:
     from sn_script.config import (
         Config,
         binary_category_name,
         category_name,
-        subcategory_name,
-        random_seed,
         half_number,
         model_type,
+        random_seed,
+        subcategory_name,
     )
 except ModuleNotFoundError:
     import sys
@@ -25,10 +27,10 @@ except ModuleNotFoundError:
         Config,
         binary_category_name,
         category_name,
-        subcategory_name,
-        random_seed,
         half_number,
         model_type,
+        random_seed,
+        subcategory_name,
     )
 
 HUMAN_ANOTATION_CSV_PATH = (
@@ -69,7 +71,7 @@ def write_csv(data: dict | list, output_csv_path: str | Path):
         data = data["segments"]
 
     if not isinstance(data, list):
-        raise ValueError("data must be list or dict, but got {}".format(type(data)))
+        raise ValueError(f"data must be list or dict, but got {type(data)}")
     if output_csv_path.exists():
         logger.info(f"CSVファイルが既に存在します。:{output_csv_path}")
         return
@@ -189,7 +191,7 @@ def fill_csv_from_json():
     annotation_df[binary_category_name] = pd.NA
     annotation_df["備考"] = pd.NA
 
-    with open(LLM_ANNOTATION_JSONL_PATH, "r") as f:
+    with open(LLM_ANNOTATION_JSONL_PATH) as f:
         for line in f:
             result: dict = json.loads(line)
             comment_id = result.get("comment_id")

@@ -1,6 +1,6 @@
 import json
-from collections import namedtuple
 from datetime import datetime
+
 import pandas as pd
 
 try:
@@ -8,10 +8,10 @@ try:
         Config,
         binary_category_name,
         category_name,
-        subcategory_name,
-        random_seed,
         half_number,
         model_type,
+        random_seed,
+        subcategory_name,
     )
 except ModuleNotFoundError:
     import sys
@@ -19,12 +19,6 @@ except ModuleNotFoundError:
     sys.path.append(".")
     from src.sn_script.config import (
         Config,
-        binary_category_name,
-        category_name,
-        subcategory_name,
-        random_seed,
-        half_number,
-        model_type,
     )
 
 
@@ -38,7 +32,7 @@ for target in Config.targets:
     json_path = Config.base_dir / target / "Labels-caption.json"
 
     # JSONファイルを読み込む
-    with open(json_path, "r", encoding="utf-8") as file:
+    with open(json_path, encoding="utf-8") as file:
         data = json.load(file)
 
     # 試合のメタ情報

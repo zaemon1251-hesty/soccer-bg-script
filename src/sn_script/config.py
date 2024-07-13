@@ -1,5 +1,5 @@
-from pathlib import Path
 import os
+from pathlib import Path
 
 
 # 　分析対象のデータセットのパス
@@ -14,7 +14,7 @@ class Config:
     targets = [
         # os.path.join("SoccerNet", target)
         os.path.join("", target)
-        for target in open(target_file_path, "r").read().strip().split("\n")
+        for target in open(target_file_path).read().strip().split("\n")
     ]
 
 

@@ -1,27 +1,29 @@
 from __future__ import annotations
-from openai import OpenAI
+
 import json
 import os
-import pandas as pd
 from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
+
+import pandas as pd
+import torch
+import transformers
 import yaml
 from loguru import logger
-from datetime import datetime
-from transformers import AutoTokenizer
-import transformers
-import torch
+from openai import OpenAI
 from tqdm import tqdm
-from pathlib import Path
+from transformers import AutoTokenizer
 
 try:
     from sn_script.config import (
         Config,
         binary_category_name,
-        # category_name,
-        subcategory_name,
-        random_seed,
         half_number,
         model_type,
+        random_seed,
+        # category_name,
+        subcategory_name,
     )
     from sn_script.csv_utils import gametime_to_seconds
 except ModuleNotFoundError:
@@ -31,11 +33,11 @@ except ModuleNotFoundError:
     from src.sn_script.config import (
         Config,
         binary_category_name,
-        # category_name,
-        subcategory_name,
-        random_seed,
         half_number,
         model_type,
+        random_seed,
+        # category_name,
+        subcategory_name,
     )
     from src.sn_script.csv_utils import gametime_to_seconds
 
@@ -69,8 +71,8 @@ SUBCATEGORY_YAML_PATH = (
 
 all_comment_df = pd.read_csv(ALL_CSV_PATH)
 # load yaml
-binary_prompt_config = yaml.safe_load(open(PROMPT_YAML_PATH, "r"))
-subcategory_prompt_config = yaml.safe_load(open(SUBCATEGORY_YAML_PATH, "r"))
+binary_prompt_config = yaml.safe_load(open(PROMPT_YAML_PATH))
+subcategory_prompt_config = yaml.safe_load(open(SUBCATEGORY_YAML_PATH))
 
 if model_type == "meta-llama/Llama-2-70b-chat-hf":
     # use local llama model
@@ -105,7 +107,7 @@ def main(target: str = "binary"):
     time_str = datetime.now().strftime("%Y%m%d-%H%M%S")
 
     logger.add(
-        "logs/llm_anotator_{time}.log".format(time=time_str),
+        f"logs/llm_anotator_{time_str}.log",
     )
     logger.info(f"{model_type=}")
     logger.info(f"{random_seed=}")
@@ -198,7 +200,6 @@ def main(target: str = "binary"):
         )
     else:
         raise ValueError(f"Invalid target:{target}")
-    return None
 
 
 def classify_comment(model_type: str, comment_id: int, target="binary") -> dict:

@@ -1,7 +1,5 @@
-from pyannote.audio import Pipeline
-from pyannote.core import Segment
 import pandas as pd
-from sn_script.config import Config
+from pyannote.audio import Pipeline
 
 # パイプラインの初期化
 pipeline = Pipeline.from_pretrained("pyannote/segmentation")

@@ -1,11 +1,8 @@
 import json
-from pathlib import Path
-import os
+from xml.etree.ElementTree import *
 
 import requests as req
 from requests_oauthlib import OAuth1
-from xml.etree.ElementTree import *
-
 
 try:
     from sn_script.config import Config

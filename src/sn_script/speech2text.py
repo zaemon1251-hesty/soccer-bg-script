@@ -1,10 +1,11 @@
-import whisper
-from pathlib import Path
 import json
-from tqdm import tqdm
 import os
 from datetime import datetime
+from pathlib import Path
+
+import whisper
 from loguru import logger
+from tqdm import tqdm
 
 try:
     from sn_script.config import Config, half_number
@@ -42,7 +43,6 @@ def main():
 
         run_transcribe(model, target_dir_path)
 
-    return
 
 
 def asr_comformer():
@@ -81,6 +81,6 @@ if __name__ == "__main__":
     time_str = datetime.now().strftime("%Y%m%d-%H%M%S")
 
     logger.add(
-        "logs/llm_anotator_{time}.log".format(time=time_str),
+        f"logs/llm_anotator_{time_str}.log",
     )
     main()

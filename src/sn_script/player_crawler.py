@@ -1,6 +1,7 @@
-import requests
-import pandas as pd
 import time
+
+import pandas as pd
+import requests
 from tqdm import tqdm
 
 try:

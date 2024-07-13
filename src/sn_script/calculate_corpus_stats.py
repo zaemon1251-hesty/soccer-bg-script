@@ -1,10 +1,12 @@
 from __future__ import annotations
-import pandas as pd
-from collections import defaultdict
+
 import ast
-import pprint
-from loguru import logger
 import json
+import pprint
+from collections import defaultdict
+
+import pandas as pd
+from loguru import logger
 from whisper.tokenizer import LANGUAGES
 
 try:
@@ -12,10 +14,10 @@ try:
         Config,
         binary_category_name,
         category_name,
-        subcategory_name,
-        random_seed,
         half_number,
         model_type,
+        random_seed,
+        subcategory_name,
     )
 except ModuleNotFoundError:
     import sys
@@ -25,10 +27,9 @@ except ModuleNotFoundError:
         Config,
         binary_category_name,
         category_name,
-        subcategory_name,
-        random_seed,
         half_number,
         model_type,
+        subcategory_name,
     )
 
 RAW_JSON_TEMPLATE = f"{half_number}_224p.json"
@@ -100,7 +101,7 @@ def get_number_audio_launguages():
     for target in Config.targets:
         # target: str = target.rstrip("/").split("/")[-1]
         json_path = Config.base_dir / target / RAW_JSON_TEMPLATE
-        with open(json_path, "r") as f:
+        with open(json_path) as f:
             raw_data = json.load(f)
         language_counts[LANGUAGES[raw_data["language"]]] += 1
     resutl_str = pprint.pformat(dict(language_counts), depth=2, width=40, indent=2)
@@ -108,7 +109,7 @@ def get_number_audio_launguages():
 
 
 def get_num_with_audio_commentary():
-    games = open(Config.target_file_path, "r").readlines()
+    games = open(Config.target_file_path).readlines()
     game_num = len(games)
     return game_num
 

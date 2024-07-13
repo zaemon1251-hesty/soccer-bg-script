@@ -1,20 +1,20 @@
-import nltk
-from typing import List, Dict
 import json
-from loguru import logger
+
+import nltk
 import pandas as pd
+from loguru import logger
 
 try:
     from sn_script.config import (
         Config,
         binary_category_name,
         category_name,
-        subcategory_name,
-        random_seed,
         half_number,
         model_type,
+        random_seed,
+        subcategory_name,
     )
-    from sn_script.csv_utils import write_csv, stop_watch
+    from sn_script.csv_utils import stop_watch, write_csv
 except ModuleNotFoundError:
     import sys
 
@@ -23,12 +23,10 @@ except ModuleNotFoundError:
         Config,
         binary_category_name,
         category_name,
-        subcategory_name,
-        random_seed,
         half_number,
-        model_type,
+        subcategory_name,
     )
-    from src.sn_script.csv_utils import write_csv, stop_watch
+    from src.sn_script.csv_utils import stop_watch, write_csv
 
 ALL_CSV_PATH = (
     Config.target_base_dir / f"500game_denoised_{half_number}_tokenized_224p_all.csv"
@@ -50,7 +48,7 @@ def convert_json_to_csv():
         # target: str = target.rstrip("/").split("/")[-1]
         json_path = Config.base_dir / target / RAW_JSON_TEMPLATE
         csv_path = Config.base_dir / target / RAW_CSV_TEMPLATE
-        with open(json_path, "r") as f:
+        with open(json_path) as f:
             json_data = json.load(f)
         write_csv(json_data, csv_path)
 
@@ -59,7 +57,7 @@ def convert_json_to_csv():
 def denoise_sentenses():
     """whisperが生成したjsonに含まれるセグメントのうち，ノイズとなるセグメントを除去する"""
 
-    def preprocess_data(sentenses_data: List[Dict[str, str]]):
+    def preprocess_data(sentenses_data: list[dict[str, str]]):
         result = []
         for sts in sentenses_data:
             sts["text"] = sts["text"].replace("\n", "").strip()
@@ -70,7 +68,7 @@ def denoise_sentenses():
         result = sentense == prev_sentense
         return result
 
-    def remove_noise(sentenses_data: List[Dict[str, str]]):
+    def remove_noise(sentenses_data: list[dict[str, str]]):
         result = []
         prev_sentense = ""
         for sts in sentenses_data:
@@ -81,7 +79,7 @@ def denoise_sentenses():
         return result
 
     def dump_denoised_data(
-        sentenses_data: List[Dict[str, str]],
+        sentenses_data: list[dict[str, str]],
         denoised_txt_path: str,
         denoised_jsonl_path: str,
     ):
@@ -98,7 +96,7 @@ def denoise_sentenses():
         json_txt_path = Config.base_dir / target / RAW_JSON_TEMPLATE
         denoised_txt_path = Config.base_dir / target / DENOISED_TEXT_TEMPLATE
         denoised_jsonl_path = Config.base_dir / target / DENISED_JSONLINE_TEPMLATE
-        raw_data = json.load(open(json_txt_path, "r"))["segments"]
+        raw_data = json.load(open(json_txt_path))["segments"]
         preprocessed_data = preprocess_data(raw_data)
         denoised_data = remove_noise(preprocessed_data)
         logger.info(f"before: {len(preprocessed_data)}, after: {len(denoised_data)}")
@@ -112,7 +110,7 @@ def tokenize_sentense():
         # target: str = target.rstrip("/").split("/")[-1]
         denoised_txt_path = Config.base_dir / target / DENOISED_TEXT_TEMPLATE
         tokenized_txt_path = Config.base_dir / target / DENISED_TOKENIZED_TEPMLATE
-        with open(denoised_txt_path, "r") as f:
+        with open(denoised_txt_path) as f:
             text = f.read()
         with open(tokenized_txt_path, "w") as f:
             f.write("\n".join(nltk.sent_tokenize(text)))
@@ -126,10 +124,10 @@ def create_jsonline_tokenized_sentences():
         tokenized_txt_path: str, denoised_jsonl_path: str, tokenized_jsonl_path: str
     ):
         result = []
-        with open(tokenized_txt_path, "r") as f:
+        with open(tokenized_txt_path) as f:
             tokenized_texts = f.readlines()
 
-        with open(denoised_jsonl_path, "r") as f:
+        with open(denoised_jsonl_path) as f:
             denoised_data = [json.loads(line) for line in f.readlines()]
         tokenized_texts = [t.rstrip("\n") for t in tokenized_texts]
 
@@ -193,7 +191,7 @@ def round_down():
                 f"tokenized_jsonl_path is not exists: {tokenized_jsonl_path}"
             )
             continue
-        data = [json.loads(line) for line in open(tokenized_jsonl_path, "r")]
+        data = [json.loads(line) for line in open(tokenized_jsonl_path)]
         for d in data:
             d["start"] = round(d["start"], 2)
             d["end"] = round(d["end"], 2)
@@ -217,7 +215,7 @@ def create_csv_tokenized_sentenses():
             )
             continue
         tokenized_csv_path = Config.base_dir / target / DENISED_TOKENIZED_CSV_TEPMLATE
-        data = [json.loads(line) for line in open(tokenized_jsonl_path, "r")]
+        data = [json.loads(line) for line in open(tokenized_jsonl_path)]
         for i, d in enumerate(data, start=1):
             d["id"] = i
         write_csv(data, tokenized_csv_path)

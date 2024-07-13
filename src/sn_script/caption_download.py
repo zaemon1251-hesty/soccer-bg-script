@@ -1,7 +1,7 @@
+import os
+
 from SoccerNet.Downloader import SoccerNetDownloader as SNdl
 from SoccerNet.utils import getListGames
-from pathlib import Path
-import os
 
 try:
     from sn_script.config import Config
