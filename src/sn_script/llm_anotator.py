@@ -17,7 +17,7 @@ try:
     from sn_script.config import (
         Config,
         binary_category_name,
-        category_name,
+        # category_name,
         subcategory_name,
         random_seed,
         half_number,
@@ -31,7 +31,7 @@ except ModuleNotFoundError:
     from src.sn_script.config import (
         Config,
         binary_category_name,
-        category_name,
+        # category_name,
         subcategory_name,
         random_seed,
         half_number,
@@ -62,7 +62,9 @@ ALL_CSV_PATH = (
 
 PROMPT_YAML_PATH = Config.target_base_dir.parent / "resources" / "classify_comment.yaml"
 SUBCATEGORY_YAML_PATH = (
-    Config.target_base_dir.parent / "resources" / "classify_comment-subcategory.yaml"
+    Config.target_base_dir.parent
+    / "resources"
+    / "5-1_classify_comment-subcategory.yaml"
 )
 
 all_comment_df = pd.read_csv(ALL_CSV_PATH)
@@ -95,7 +97,7 @@ def main(target: str = "binary"):
     """LLMによるアノテーションを行う
 
     以下の2つがグローバル変数として定義されていることが前提
-    - LLM_ANOTATION_CSV_PATH
+    - LLM_ANOTATION_CSV_PATH # アノテーション結果を保存するcsvファイル (ラベルの列だけ空の状態)
     - LLM_ANNOTATION_JSONL_PATH  # ストリームで保存するためのjsonlファイル
     """
     annotation_df = pd.read_csv(LLM_ANOTATION_CSV_PATH)
@@ -154,32 +156,20 @@ def main(target: str = "binary"):
             str: reason for category
         """
         comment_id = row["id"]
-        if not pd.isnull(row[category_name]):
-            return row[subcategory_name]
         try:
-            binary_cateogry, binary_reason = annotate_category_binary(row)
-            binary_category = int(binary_cateogry)
-            if binary_category == 1:
-                # 付加的情報が含まれている場合
-                subcategory_result = classify_comment(
-                    model_type, comment_id, "subcategory"
-                )
+            # 付加的情報が含まれている場合
+            subcategory_result = classify_comment(model_type, comment_id, "subcategory")
 
-                # jsonl形式でアノテーション結果を保存する
-                with open(LLM_ANNOTATION_JSONL_PATH, "a") as f:
-                    subcategory_result["comment_id"] = comment_id
-                    json.dump(subcategory_result, f)
-                    f.write("\n")
+            # jsonl形式でアノテーション結果を保存する
+            with open(LLM_ANNOTATION_JSONL_PATH, "a") as f:
+                subcategory_result["comment_id"] = comment_id
+                json.dump(subcategory_result, f)
+                f.write("\n")
 
-                subcategory = subcategory_result.get("category")
-                logger.info(f"subcategory:{subcategory}")
-                subcategory_reason = subcategory_result.get("reason")
-                return subcategory, subcategory_reason
-            elif binary_category == 0:
-                # 付加的情報が含まれていない場合
-                return 0, binary_reason
-            else:
-                raise ValueError(f"Invalid binary_category:{binary_category}")
+            subcategory = subcategory_result.get("subcategory")
+            logger.info(f"subcategory:{subcategory}")
+            subcategory_reason = subcategory_result.get("reason")
+            return subcategory, subcategory_reason
 
         except Exception as e:
             logger.error(f"comment_id={comment_id} is not annotated.")
@@ -327,7 +317,7 @@ def create_target_prompt(
     target_comment_data = all_comment_df.iloc[comment_id]
 
     # TODO ハードコーディングをなくすべき
-    context_length = 2
+    context_length = 10
 
     previous_comments_data = all_comment_df[
         (all_comment_df["game"] == target_comment_data["game"])
@@ -363,8 +353,8 @@ def get_formatted_comment(prompt_args: PromptArgments) -> str:
     """分類対象のコメントに関するプロンプトを作成する"""
 
     message = f"""
+gap (seconds) => {prompt_args.gap}
 previous comments => {" ".join(prompt_args.previous_comments)}
-start gap (seconds) from previous => {prompt_args.gap}
 comment => {prompt_args.comment}
 """
 
@@ -449,9 +439,18 @@ if __name__ == "__main__":
                 / f"{model_type}_{random_seed}_{half_number}_llm_annotation.jsonl"
             )
         elif args.target == "subcategory":
-            LLM_ANOTATION_CSV_PATH = (
-                Config.target_base_dir / f"{args.prefix}_subcategory_llm_annotation.csv"
+            HUMAN_ANNOTAION_CSV_PATH = (
+                Config.target_base_dir / "1_10_val_subcategory_annotation.csv"
             )
+            LLM_ANOTATION_CSV_PATH = (
+                Config.target_base_dir
+                / f"{args.prefix}_{model_type}_subcategory_llm_annotation.csv"
+            )
+            if not LLM_ANOTATION_CSV_PATH.exists():
+                human_df = pd.read_csv(HUMAN_ANNOTAION_CSV_PATH)
+                human_df["subcategory"] = pd.NA
+                human_df.to_csv(LLM_ANOTATION_CSV_PATH, index=False)
+
             LLM_ANNOTATION_JSONL_PATH = (
                 Config.target_base_dir
                 / f"{args.prefix}_{model_type}_{random_seed}_{half_number}_subcategory_llm_annotation.jsonl"

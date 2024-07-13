@@ -29,7 +29,8 @@ random_seed = 93
 half_number = 1
 
 # 使用するLLMのモデル名
-model_type = "gpt-3.5-turbo-1106"
+# model_type = "gpt-3.5-turbo-1106"
+model_type = "gpt-4o-2024-05-13"
 # model_type = "gpt-4-1106-preview"
 # model_type = "meta-llama/Llama-2-70b-chat-hf"
 

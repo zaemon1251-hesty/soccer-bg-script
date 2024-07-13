@@ -95,7 +95,8 @@ def generate_subcategory_jsonlines():
         ...
 
         のようなテキストファイルを読み込んで、以下のようなJSON Lines形式のファイルに変換する
-        {"id": "12121", "game": "hogehoge", "previous_comments": "これは前のコメントです", "comment": "これはコメントです", "output": {"category": 1}}
+        {"id": "12121", "game": "hogehoge", "previous_comments": "これは前のコメントです",
+            "comment": "これはコメントです", "output": {"category": 1}}
         {"id": "12122", "game": "fugafuga", ...}
         """
         with open(input_file_path, "r", encoding="utf-8") as file:

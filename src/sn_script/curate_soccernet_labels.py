@@ -42,6 +42,7 @@ for target in Config.targets:
         data = json.load(file)
 
     # ゲームの名前を取得
+    # raid_elmo内 SoccerNetの構造上SoccerNetというPath
     game = target.replace("SoccerNet/", "")
 
     # 'annotations' キーのデータを取得

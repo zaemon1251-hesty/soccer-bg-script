@@ -302,6 +302,16 @@ def evaluate_subcategory():
     # Recalculate classification report for detailed analysis (precision, recall, f1-score by class)
     class_report = classification_report(y_true_str, y_pred_str, output_dict=True)
 
+    false_positive_ids = []
+    false_negative_ids = []
+
+    for i, (true_label, pred_label) in enumerate(zip(y_true_str, y_pred_str)):
+        if true_label != pred_label:
+            if true_label == "Irrelevant":
+                false_positive_ids.append(human_df.iloc[i]["id"])
+            elif true_label == "Relevant":
+                false_negative_ids.append(human_df.iloc[i]["id"])
+
     logger.info("key, precision, recall, f1-score, support")
     for k, v in class_report.items():
         if isinstance(v, dict):
@@ -310,6 +320,10 @@ def evaluate_subcategory():
             )
         else:
             logger.info(k, v)
+
+    logger.info(f"False Positive list:{false_positive_ids}")
+    logger.info(f"False Negative list:{false_negative_ids}")
+
     logger.info("Done evaluation")
 
 
@@ -337,11 +351,11 @@ if __name__ == "__main__":
         logger.info(result)
     if args.target == "subcategory":
         SUBCATEGORY_ANNOTATION_CSV_PATH = (
-            Config.target_base_dir
-            / f"20240306_{half_number}_{random_seed}_supplementary_comments_annotation.csv"
+            Config.target_base_dir / "1_10_val_subcategory_annotation.csv"
         )
         SUBCATEGORY_LLM_CSV_PATH = (
-            Config.target_base_dir / f"{args.prefix}_subcategory_llm_annotation.csv"
+            Config.target_base_dir
+            / f"{args.prefix}_{model_type}_subcategory_llm_annotation.csv"
         )
         evaluate_subcategory()
     else:
