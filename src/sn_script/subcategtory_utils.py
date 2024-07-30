@@ -1,5 +1,5 @@
 import json
-
+import os
 import pandas as pd
 from loguru import logger
 
@@ -42,10 +42,10 @@ SUBCATEGORY_COMMENTS_JSONL_PATH = (
 
 SUBCATEGORY_ANNOTATION_CSV_PATH = (
     Config.target_base_dir
-    / f"{half_number}_{random_seed}_supplementary_comments_annotation.csv"
+    / f"{half_number}_{random_seed}_val_subcategory_annotation.csv"
 )
 SUBCATEGORY_LLM_CSV_PATH = (
-    Config.target_base_dir / "{file_name_prefix}_subcategory_llm_annotation.csv"
+    Config.target_base_dir / "{file_name_prefix}_{model_type}_subcategory_llm_annotation.csv"
 )
 
 
@@ -214,12 +214,16 @@ def create_annotation_csv_from_jsonl():
     annotation_df.to_csv(SUBCATEGORY_ANNOTATION_CSV_PATH, index=False)
 
 
-def create_llm_annotation_csv(file_name_prefix: str):
-    annotation_df = pd.read_csv(SUBCATEGORY_ANNOTATION_CSV_PATH)
+def create_llm_annotation_csv(subcategory_annotated_csv_path, file_name_prefix: str):
+    annotation_df = pd.read_csv(subcategory_annotated_csv_path)
     annotation_df[subcategory_name] = pd.NA
     llm_target_csv_path = str(SUBCATEGORY_LLM_CSV_PATH).format(
-        file_name_prefix=file_name_prefix
+        file_name_prefix=file_name_prefix,
+        model_type=model_type,
     )
+
+    assert not os.path.exists(llm_target_csv_path), f"{llm_target_csv_path}  exists. Use another file name."
+
     annotation_df.to_csv(
         llm_target_csv_path,
         index=False,
@@ -248,6 +252,6 @@ if __name__ == "__main__":
     elif args.type == "csv":
         create_annotation_csv()
     elif args.type == "llmcsv":
-        create_llm_annotation_csv(args.prefix)
+        create_llm_annotation_csv(SUBCATEGORY_ANNOTATION_CSV_PATH, args.prefix)
     else:
         raise ValueError(f"Invalid type: {args.type}")

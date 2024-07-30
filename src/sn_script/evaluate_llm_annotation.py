@@ -289,10 +289,14 @@ def preprocess_human_annotation():
 def evaluate_subcategory():
     from sklearn.metrics import classification_report
 
+    logger.info(f"{model_type=}")
+    logger.info(f"{random_seed=}")
+    logger.info(f"{half_number=}")
+
     human_df = pd.read_csv(SUBCATEGORY_ANNOTATION_CSV_PATH).sort_values("id")
     llm_df = pd.read_csv(SUBCATEGORY_LLM_CSV_PATH).sort_values("id")
 
-    assert set(human_df["id"]) == set(llm_df["id"])
+    assert set(human_df["id"]) == set(llm_df["id"]), f"diff exists: {set(llm_df['id']) ^ set(human_df['id'])}"
 
     # Prepare the data for accuracy and F1 score calculation with the values as strings
     y_true_str = human_df[subcategory_name].astype(str)
@@ -302,6 +306,10 @@ def evaluate_subcategory():
     logger.info(set(y_true_str))
     logger.info(set(y_pred_str))
 
+    # accuracy
+    accuracy = (y_true_str == y_pred_str).mean()
+    logger.info(f"Accuracy: {accuracy}")
+
     # Recalculate classification report for detailed analysis (precision, recall, f1-score by class)
     class_report = classification_report(y_true_str, y_pred_str, output_dict=True)
 
@@ -310,9 +318,9 @@ def evaluate_subcategory():
 
     for i, (true_label, pred_label) in enumerate(zip(y_true_str, y_pred_str)):
         if true_label != pred_label:
-            if true_label == "Irrelevant":
+            if pred_label == "YES":
                 false_positive_ids.append(human_df.iloc[i]["id"])
-            elif true_label == "Relevant":
+            elif pred_label == "NO":
                 false_negative_ids.append(human_df.iloc[i]["id"])
 
     logger.info("key, precision, recall, f1-score, support")
@@ -351,13 +359,15 @@ if __name__ == "__main__":
         result = evaluator.evaluate()
         logger.info(result)
     if args.target == "subcategory":
+        # Comment Relevant と Video Relevant
         SUBCATEGORY_ANNOTATION_CSV_PATH = (
-            Config.target_base_dir / "1_10_val_subcategory_annotation.csv"
+            Config.target_base_dir / f"{half_number}_{random_seed}_val_subcategory_annotation.csv"
         )
         SUBCATEGORY_LLM_CSV_PATH = (
             Config.target_base_dir
             / f"{args.prefix}_{model_type}_subcategory_llm_annotation.csv"
         )
+
         evaluate_subcategory()
     else:
         raise ValueError(f"Invalid type: {args.target}")

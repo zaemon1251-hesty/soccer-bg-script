@@ -17,6 +17,8 @@ class Config:
         for target in open(target_file_path).read().strip().split("\n")
     ]
 
+    context_length = 2 # 自動ラベリングで何個前までのコメントを使うか
+
 
 # 分析対象のカラム名
 binary_category_name = "付加的情報か"
@@ -25,12 +27,12 @@ subcategory_name = "小分類"
 
 
 # ターゲットの設定
-random_seed = 93
+random_seed = 10
 half_number = 1
 
 # 使用するLLMのモデル名
-# model_type = "gpt-3.5-turbo-1106"
-model_type = "gpt-4o-2024-05-13"
+model_type = "gpt-3.5-turbo-1106"
+#model_type = "gpt-4o-2024-05-13"
 # model_type = "gpt-4-1106-preview"
 # model_type = "meta-llama/Llama-2-70b-chat-hf"
 

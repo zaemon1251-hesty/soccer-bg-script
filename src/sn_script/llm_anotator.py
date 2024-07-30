@@ -66,13 +66,16 @@ PROMPT_YAML_PATH = Config.target_base_dir.parent / "resources" / "classify_comme
 SUBCATEGORY_YAML_PATH = (
     Config.target_base_dir.parent
     / "resources"
-    / "5-1_classify_comment-subcategory.yaml"
+    / f"6-{half_number}_classify_comment-subcategory.yaml"
 )
 
-all_comment_df = pd.read_csv(ALL_CSV_PATH)
 # load yaml
 binary_prompt_config = yaml.safe_load(open(PROMPT_YAML_PATH))
 subcategory_prompt_config = yaml.safe_load(open(SUBCATEGORY_YAML_PATH))
+
+# load all comments
+all_comment_df = pd.read_csv(ALL_CSV_PATH)
+
 
 if model_type == "meta-llama/Llama-2-70b-chat-hf":
     # use local llama model
@@ -317,8 +320,7 @@ def create_target_prompt(
 
     target_comment_data = all_comment_df.iloc[comment_id]
 
-    # TODO ハードコーディングをなくすべき
-    context_length = 10
+    context_length = Config.context_length
 
     previous_comments_data = all_comment_df[
         (all_comment_df["game"] == target_comment_data["game"])
@@ -368,28 +370,34 @@ def get_formatted_comment_csv(prompt_args: PromptArgments) -> str:
 
 
 def output_target_prompt(
-    ANNOTATION_CSV_PATH: Path,
-    TARGET_FILE_PATH: Path,
+    annotation_csv_path: Path,
+    target_csv_path: Path,
     filter: bool = False,
     csv_mode: bool = False,
     include_debug_info: bool = False,
 ):
-    if csv_mode and TARGET_FILE_PATH.suffix != ".csv":
-        raise ValueError(f"Invalid file extension:{TARGET_FILE_PATH.suffix}")
+    if csv_mode and target_csv_path.suffix != ".csv":
+        raise ValueError(f"Invalid file extension:{target_csv_path.suffix}")
 
-    annotation_df = pd.read_csv(ANNOTATION_CSV_PATH)
+    annotation_df = pd.read_csv(annotation_csv_path)
 
     # 付加的情報が含まれているコメントのみを抽出する
     if filter:
         annotation_df = annotation_df[annotation_df[binary_category_name] == 1]
 
     target_list = []
+
+    # ヘッダ
+    target_list.append(
+        "id,game,start,end,gap(sec),prev,target,subcategory"
+    )
+
     for comment_id in annotation_df["id"]:
         target_list.append(
             create_target_prompt(comment_id, csv_mode, include_debug_info)
         )
 
-    with open(TARGET_FILE_PATH, "w") as f:
+    with open(target_csv_path, "w") as f:
         f.write("\n".join(target_list))
 
     return 0
@@ -439,30 +447,32 @@ if __name__ == "__main__":
                 Config.target_base_dir
                 / f"{model_type}_{random_seed}_{half_number}_llm_annotation.jsonl"
             )
+
         elif args.target == "subcategory":
             HUMAN_ANNOTAION_CSV_PATH = (
-                Config.target_base_dir / "1_10_val_subcategory_annotation.csv"
+                Config.target_base_dir / f"{half_number}_{random_seed}_val_subcategory_annotation.csv"
             )
             LLM_ANOTATION_CSV_PATH = (
                 Config.target_base_dir
                 / f"{args.prefix}_{model_type}_subcategory_llm_annotation.csv"
             )
-            if not LLM_ANOTATION_CSV_PATH.exists():
-                human_df = pd.read_csv(HUMAN_ANNOTAION_CSV_PATH)
-                human_df["subcategory"] = pd.NA
-                human_df.to_csv(LLM_ANOTATION_CSV_PATH, index=False)
+
+            assert HUMAN_ANNOTAION_CSV_PATH.exists(), f"{HUMAN_ANNOTAION_CSV_PATH} is not found"
+
+            assert LLM_ANOTATION_CSV_PATH.exists(), f"{LLM_ANOTATION_CSV_PATH} is not found"
 
             LLM_ANNOTATION_JSONL_PATH = (
                 Config.target_base_dir
                 / f"{args.prefix}_{model_type}_{random_seed}_{half_number}_subcategory_llm_annotation.jsonl"
             )
+
         else:
             raise ValueError(f"Invalid target:{args.target}")
+
         main(args.target)
+
     elif args.type == "output_target_prompt":
         # ChatGPT用のプロンプトを作成する
-
-        # target_filename = "20240306_1_10_supplementary_comments_annotation.csv"
         target_filename = (
             f"{half_number}_{random_seed}_supplementary_comments_annotation.csv"
         )

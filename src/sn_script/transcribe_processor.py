@@ -10,8 +10,6 @@ try:
         binary_category_name,
         category_name,
         half_number,
-        model_type,
-        random_seed,
         subcategory_name,
     )
     from sn_script.csv_utils import stop_watch, write_csv

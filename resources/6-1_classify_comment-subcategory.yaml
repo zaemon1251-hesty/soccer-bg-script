@@ -1,0 +1,47 @@
+description: |+
+  Classify whether the given comment is contextually related or unrelated to the previous comments.
+  Return json object with subcategory.
+
+shots:
+  - 1:
+    user: |+
+      gap (second) => 4
+      previous comments => Wanyama. It's a penalty.
+      comment => The grappling has gone on throughout the game.
+    assistant: |
+      subcategory => NO
+  - 2:
+    user: |+
+      gap (second) => 0
+      previous comments => ¿Qué os parece? A mí me parece que se engancha la pierna pero que no hace nada Nacho para derribarlo.
+      comment => Bueno, sus forcejeos han enganchado y yo creo que ahí el jugador del Valencia pues está listo, se ha dejado caer y el árbitro pues ha pitado falta.
+    assistant: |
+      subcategory => YES
+  - 3:
+    user: |+
+      gap (second) => 8
+      previous comments => Lo que en Inglaterra sería también como, si no hecho así bastante probable, la llegada aparte de Memphis Depay que ya ha fichado, de Madhumels. Hablando un poco de los centrales Madhumels.
+      comment => Se está especulando con la posibilidad de que al final Pogba vuelva.
+    assistant: |
+      subcategory => YES
+  - 4:
+    user: |+
+      gap (second) => 6
+      previous comments => Voilà Verratti tout à l'heure lorsqu'il a peut-être perdu sa chaussure. Lorsqu'il a été touché surtout.
+      comment => On sait qu'il souffrait du mollet.
+    assistant: |
+      subcategory => YES
+  - 5:
+    user: |+
+      gap (second) => 3
+      previous comments => No tiró, podía haber tirado, estaba en muy buena posición. Lo vio muy claro Cristiano que había apresurado su carrera y terminó el Madrid desaprovechando una gran ocasión de gol ante una jugada extraordinaria de Carvajal.
+      comment => En ningún caso andábamos equivocados cuando apuntábamos en la previa Santi la importancia de lo que pudiera pasar en la zona que ocupan los laterales del Real Madrid tanto en ataque como en defensa.
+    assistant: |
+      subcategory => YES
+  - 6:
+    user: |+
+      gap (second) => 2
+      previous comments => Nothing much in that one for me. Westwood.
+      comment => £50,000 fine being appealed by Jose Mourinho.
+    assistant: |
+      subcategory => NO

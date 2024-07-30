@@ -1,16 +1,12 @@
 import csv
 import json
 from collections import namedtuple
+from SoccerNet.Downloader import getListGames
+from dataclasses import dataclass
 
 try:
     from sn_script.config import (
         Config,
-        binary_category_name,
-        category_name,
-        half_number,
-        model_type,
-        random_seed,
-        subcategory_name,
     )
 except ModuleNotFoundError:
     import sys
@@ -22,24 +18,38 @@ except ModuleNotFoundError:
 
 SOCCERNET_LABEL_CSV_PATH = Config.target_base_dir / "soccernet_labels.csv"
 
-AnnotationArgments = namedtuple(
-    "AnnotationArgments", ["game", "half", "time", "important", "label", "description"]
-)
+@dataclass(frozen=True)
+class AnnotationArgments:
+    game: str
+    half: str
+    time: str
+    important: bool
+    label: str
+    split: str
+    description: str
 
-all_annotations = []
 
-for target in Config.targets:
-    json_path = Config.base_dir / target / "Labels-caption.json"
+def get_game_split_map():
+    game_split_map = {}
+    for split in ["train", "valid", "test", "challenge"]:
+        games = getListGames(split, "caption")
+        game_split_map.update({game: split for game in games})
+    return game_split_map
+
+
+all_annotations: list[AnnotationArgments] = []
+
+game_split_map = get_game_split_map()
+
+
+for game, split in game_split_map.items():
+    json_path = Config.base_dir / "SoccerNet" / game / "Labels-caption.json"
 
     # JSONファイルを読み込む
     with open(json_path, encoding="utf-8") as file:
         data = json.load(file)
 
-    # ゲームの名前を取得
-    # raid_elmo内 SoccerNetの構造上SoccerNetというPath
-    game = target.replace("SoccerNet/", "")
-
-    # 'annotations' キーのデータを取得
+    # 'annotations' : 速報コメントのリスト
     annotations = data.get("annotations", [])
 
     for annotation in annotations:
@@ -50,7 +60,7 @@ for target in Config.targets:
 
         assert type(important) is bool
         half, time = game_time.split(" - ")
-        args = AnnotationArgments(game, half, time, important, label, description)
+        args = AnnotationArgments(game, half, time, important, label, split, description)
         all_annotations.append(args)
 
 
@@ -58,8 +68,7 @@ for target in Config.targets:
 with open(SOCCERNET_LABEL_CSV_PATH, "w", newline="", encoding="utf-8") as csvfile:
     writer = csv.writer(csvfile)
 
-    # CSVのヘッダーを書き込む
-    writer.writerow(["game", "important", "half", "time", "label", "description"])
+    writer.writerow(["game", "important", "half", "time", "label", "split", "description"])
     for args in all_annotations:
         writer.writerow(
             [
@@ -68,6 +77,7 @@ with open(SOCCERNET_LABEL_CSV_PATH, "w", newline="", encoding="utf-8") as csvfil
                 args.half,
                 args.time,
                 args.label,
+                args.split,
                 args.description,
             ]
         )
