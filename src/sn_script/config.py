@@ -10,7 +10,7 @@ class Config:
     target_base_dir = (
         Path(__file__).parent.parent.parent / "database"
     )  # (project-root)/database
-    target_file_path = target_base_dir / "figure_targets.txt"
+    target_file_path = target_base_dir / "exist_targets.txt"
     targets = [
         # os.path.join("SoccerNet", target)
         os.path.join("", target)
@@ -28,7 +28,7 @@ subcategory_name = "小分類"
 
 # ターゲットの設定
 random_seed = 10
-half_number = 1
+half_number = 2
 
 # 使用するLLMのモデル名
 model_type = "gpt-3.5-turbo-1106"
