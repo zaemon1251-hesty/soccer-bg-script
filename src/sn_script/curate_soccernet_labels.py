@@ -1,8 +1,8 @@
 import csv
 import json
-from dataclasses import dataclass
-
+from collections import namedtuple
 from SoccerNet.Downloader import getListGames
+from dataclasses import dataclass
 
 try:
     from sn_script.config import (
