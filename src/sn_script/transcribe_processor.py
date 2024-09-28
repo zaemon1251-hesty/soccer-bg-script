@@ -121,6 +121,34 @@ def create_jsonline_tokenized_sentences():
     def _run(
         tokenized_txt_path: str, denoised_jsonl_path: str, tokenized_jsonl_path: str
     ):
+        """
+        gameごとにtokenized済みのテキストをjsonline形式に変換する
+        Input:
+            tokenized_text_path: str
+            denoised_jsonl_path: str
+            tokenized_jsonl_path: str
+        Output:
+            None
+
+        アルゴリズム:
+            入力:
+                sentence-splitterで分割されたテキストセグメント P = {(seg_j)}
+                ノイズ除去済みのWhisper書き起こしセグメント S = {(t_i, s_i, e_i)}
+            出力:
+                sentence-splitterで分割されたテキストセグメント P_ = {(seg_j, s_j, e_j)}
+            手順:
+                P_ = []
+                i = 1 (1-indexed)
+                i_max = |P|
+                for seg_j in P:
+                    covering_text = ""
+                    start_i = i
+                    while covering_text not contains seg_j:
+                        covering_text += empty+t_i
+                        i += 1
+                    P_.append((seg_j, s_start_i, e_i))
+                return P_
+        """
         result = []
         with open(tokenized_txt_path) as f:
             tokenized_texts = f.readlines()
