@@ -138,14 +138,14 @@ def create_jsonline_tokenized_sentences():
                 sentence-splitterで分割されたテキストセグメント P_ = {(seg_j, s_j, e_j)}
             手順:
                 P_ = []
-                i = 1 (1-indexed)
+                i = 1
                 i_max = |P|
                 for seg_j in P:
-                    covering_text = ""
                     start_i = i
+                    covering_text = t_i
                     while covering_text not contains seg_j:
-                        covering_text += empty+t_i
-                        i += 1
+                        i = i + 1
+                        covering_text = covering_text + " " + t_i
                     P_.append((seg_j, s_start_i, e_i))
                 return P_
         """
@@ -166,7 +166,7 @@ def create_jsonline_tokenized_sentences():
 
             covering_text = denoised_data[start_span_idx]["text"]
             while end_span_idx <= end_segments_idx:
-                if tokenized_text in covering_text:
+                if tokenized_text.strip() in covering_text:
                     break
                 end_span_idx += 1
                 covering_text += " " + denoised_data[end_span_idx]["text"]
