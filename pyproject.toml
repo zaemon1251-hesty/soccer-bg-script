@@ -23,8 +23,9 @@ dependencies = [
     "trafilatura>=1.12.1",
     "lxml_html_clean>=0.2.0",
     "soundfile>=0.12.1",
-    "faster-whisper>=1.0.3",
     "whisper>=1.1.10",
+    "whisperx",
+    "faster-whisper>=1.0.0",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
@@ -81,3 +82,6 @@ ignore = [
 [tool.ruff.format]
 quote-style = "double"
 line-ending = "auto"
+
+[tool.uv.sources]
+whisperx = { git = "https://github.com/m-bain/whisperx.git" }

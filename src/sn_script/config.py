@@ -5,7 +5,7 @@ from pathlib import Path
 # 　分析対象のデータセットのパス
 class Config:
     base_dir = (
-        Path("/Users/heste/workspace/soccernet/SoccerNet")
+        Path("/Users/heste/workspace/soccernet/SoccerNet_in_lrlab")
     )  # (project-root)/data
     target_base_dir = (
         Path(__file__).parent.parent.parent / "database"
