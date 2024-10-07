@@ -4,3 +4,6 @@ __pycache__
 .DS_Store
 
 docs
+annotation_tool/video
+annotation_tool/audio
+!annotation_tool/vad.txt

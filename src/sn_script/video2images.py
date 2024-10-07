@@ -17,7 +17,7 @@ except ModuleNotFoundError:
     from src.sn_script.config import Config
 
 
-GAMES: List[str] = getListGames("all", task="caption")
+GAMES: List[str] = getListGames("all", task="caption") # noqa
 
 
 class Video2ImangeArgments(Tap):
