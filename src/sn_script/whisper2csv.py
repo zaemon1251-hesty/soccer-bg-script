@@ -24,5 +24,16 @@ if __name__ == "__main__":
         writer = csv.writer(f)
         writer.writerow(["id", "game", "half", "start", "end", "text"])
         segments = data["segments"]
-        for _, item in enumerate(segments):
-            writer.writerow([item["id"], args.game, args.half, item["start"], item["end"], item["text"]])
+        for i, item in enumerate(segments):
+            if "id" not in item:
+                item["id"] = i
+            writer.writerow(
+                [
+                    item["id"],
+                    args.game,
+                    args.half,
+                    item["start"],
+                    item["end"],
+                    item["text"],
+                ]
+            )
