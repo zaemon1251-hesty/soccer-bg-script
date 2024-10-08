@@ -44,6 +44,9 @@ class Speech2TextArguments(Tap):
     vad_onset: float = 0.500
     vad_offset: float = 0.377
 
+    # whisperxのmergeの設定
+    chunk_size: int = 30
+
     # faster-whisper の VADの設定
     threshold: float = 0.5
     min_speech_duration_ms: int = 250
@@ -148,8 +151,10 @@ def run_transcribe(model, game_dir: Path, args: Speech2TextArguments):
         audio = whisperx.load_audio(str(video_path))
         result = model.transcribe(
             audio,
+            chunk_size=args.chunk_size,
         )
         language = result["language"]
+
         # forced-alignment
         model_a, metadata = whisperx.load_align_model(language_code=language, device="cuda")
         result = whisperx.align(result["segments"], model_a, metadata, audio, "cuda", return_char_alignments=False)
@@ -185,39 +190,6 @@ def run_transcribe(model, game_dir: Path, args: Speech2TextArguments):
             json.dump(result, f, indent=2, ensure_ascii=False)
     else:
         raise NotImplementedError(f"Model {args.model} is not implemented yet")
-
-
-def asr_comformer():
-    from espnet2.bin.asr_inference import Speech2Text
-    import soundfile
-
-    model = Speech2Text.from_pretrained(
-        "espnet/YushiUeda_iemocap_sentiment_asr_train_asr_conformer"
-    )
-
-    speech, rate = soundfile.read("speech.wav")
-    text, *_ = model(speech)[0]
-
-
-def transcribe_reason():
-    import reazonspeech as rs
-    from espnet2.bin.asr_inference import Speech2Text
-
-    target: str = "2014-11-04 - 20-00 Zenit Petersburg 1 - 2 Bayer Leverkusen"
-    video_path = Config.base_dir / target / f"{half_number}_224p.oga"
-
-    model = Speech2Text.from_pretrained(
-        "espnet/kamo-naoyuki-mini_an4_asr_train_raw_bpe_valid.acc.best"
-    )
-
-    cap = rs.transcribe(str(video_path), model)
-
-    # cap is generator
-    while True:
-        try:
-            print(next(cap))
-        except StopIteration:
-            break
 
 
 if __name__ == "__main__":

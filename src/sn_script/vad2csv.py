@@ -17,8 +17,14 @@ if __name__ == "__main__":
 
     # vad(tsv)ファイルを読み込む
     with open(args.input_vad) as f:
-        data = pd.read_csv(f, delimiter="\t")
-        data.columns = ["start", "end"]
+        data = pd.read_csv(f, delimiter="\t", header=None)
+
+        if len(data.columns) == 3:
+            # 最後の列は不要なので削除
+            data = data.drop(data.columns[-1], axis=1)
+
+    # カラム名を変更
+    data.columns = ["start", "end"]
 
     # CSVファイルを書き込む
     with open(args.output_csv, "w") as f:
