@@ -108,6 +108,7 @@ def main(args: Speech2TextArguments):
 
     model = get_stt_model(args.model, args=args)
 
+    logger.info("Start transcribing")
     for target in tqdm(target_games):
         target_dir_path = Config.base_dir / target
 
@@ -116,6 +117,7 @@ def main(args: Speech2TextArguments):
             continue
 
         run_transcribe(model, target_dir_path, args=args)
+    logger.info("End transcribing")
 
 
 def run_transcribe(model, game_dir: Path, args: Speech2TextArguments):
@@ -124,6 +126,8 @@ def run_transcribe(model, game_dir: Path, args: Speech2TextArguments):
     output_json_path = game_dir / f"{args.half}_224p{args.suffix}.json"
 
     if args.model in ("faster-whisper-large-v2", "faster-whisper-large-v3"):
+        assert isinstance(model, WhisperModel), f"Model is not faster-whisper: {model}"
+
         segments, info = model.transcribe(
             str(video_path),
             vad_filter=True,

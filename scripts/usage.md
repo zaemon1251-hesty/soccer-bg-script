@@ -1,8 +1,6 @@
-# 使い方
+# データ構築手順
 
-## 書き起こし区間性能調査
+(前提)プロジェクトルートで以下のコマンドを実行する
 
-1. speech2text-$MODEL_NAME.sh で音声から書き起こしjsonを出力
-2. whisper2csv-$MODEL_NAME.sh でjsonからcsvを出力
-3. plot_voice_detection-$MODEL_NAME.sh でcsvから音声検出のグラフを出力
-4. evaluate-vad.sh でcsvから評価結果を出力
+1. `./scripts/speech2text-whisperx-stable.sh` で音声から書き起こしjsonを出力
+2. `./scripts/whisper2csv-whisperx-stable.sh` でjsonからcsvを出力
