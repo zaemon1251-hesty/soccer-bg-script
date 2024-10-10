@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from SoccerNet.Downloader import getListGames
 
 
 # 　分析対象のデータセットのパス
@@ -10,12 +11,8 @@ class Config:
     target_base_dir = (
         Path(__file__).parent.parent.parent / "database"
     )  # (project-root)/database
-    target_file_path = target_base_dir / "exist_targets.txt"
-    targets = [
-        # os.path.join("SoccerNet", target)
-        os.path.join("", target)
-        for target in open(target_file_path).read().strip().split("\n")
-    ]
+    target_file_path = target_base_dir / "exist_targets.txt" # TODO: 削除する
+    targets = getListGames("all")
 
     context_length = 2 # 自動ラベリングで何個前までのコメントを使うか
 

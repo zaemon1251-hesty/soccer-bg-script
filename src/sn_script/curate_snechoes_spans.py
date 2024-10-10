@@ -1,3 +1,9 @@
+"""
+要約
+- sn-echos 実況コメントスパンcsvを作成
+入出力
+- jsons to csv
+"""
 import csv
 import glob
 import json

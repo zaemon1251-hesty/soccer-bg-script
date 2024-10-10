@@ -1,3 +1,9 @@
+"""
+要約
+- SCBI (Soccer Commentary Background Information) の dataset splitを行う
+入出力
+- csv to csv
+"""
 from __future__ import annotations
 
 import pandas as pd

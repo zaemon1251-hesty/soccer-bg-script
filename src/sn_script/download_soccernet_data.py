@@ -17,14 +17,14 @@ except ModuleNotFoundError:
 
 PASSWORD = os.environ.get("SOCCERNET_PASSWORD")
 
-LOCAL_DIRECTORY = Config.base_dir / "SoccerNet"
+LOCAL_DIRECTORY = Config.base_dir
 
 # GAMES[game_id] = game_name
 GAMES: List[str] = getListGames("all")  # noqa: UP006
 
 
 class Arguments(Tap):
-    task: Literal["caption", "gsr", "jersey", "spotting", "tracking", "video"] = "caption"
+    task: Literal["caption", "gsr", "jersey", "spotting", "tracking", "video", "v3"] = "caption"
     type: Literal["challenge-label", "underbar", "default"] = "default"
     target_game: str = "all"  # noqa: UP006, UP007
 
@@ -48,6 +48,11 @@ def download_tacking_label(arg: Arguments):
     my_soccer_net_downloader = SNdl(LocalDirectory=LOCAL_DIRECTORY)
     my_soccer_net_downloader.downloadDataTask(task="tracking", split=["train","test","challenge"])
     my_soccer_net_downloader.downloadDataTask(task="tracking-2023", split=["train", "test", "challenge"])
+
+def download_v3_label(arg: Arguments):
+    my_soccer_net_downloader = SNdl(LocalDirectory=LOCAL_DIRECTORY)
+    my_soccer_net_downloader.downloadGames(files=["Labels-v3.json", "Frames-v3.zip"], split=["train","valid","test"], task="frames")
+
 
 def download_caption_label(arg: Arguments):
     downloader = SNdl(LocalDirectory=LOCAL_DIRECTORY)
@@ -143,6 +148,9 @@ def main(arg: Arguments):
 
     elif arg.task == "video":
         download_video(arg)
+
+    elif arg.task == "v3":
+        download_v3_label(arg)
 
     else:
         raise ValueError("Invalid task.")

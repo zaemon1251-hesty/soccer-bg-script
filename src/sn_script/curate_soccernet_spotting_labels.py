@@ -1,3 +1,9 @@
+"""
+要約
+- SoccerNet-v2 のラベルデータをCSVに変換する
+入出力
+- jsons to csv
+"""
 import csv
 import json
 

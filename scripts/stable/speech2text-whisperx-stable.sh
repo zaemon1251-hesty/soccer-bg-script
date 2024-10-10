@@ -13,7 +13,6 @@ CHUNK_SIZE=20
 SUFFIX=_stable_version2
 
 python src/sn_script/speech2text.py \
-    --target_game "all" \
     --half 1 \
     --model $MODEL \
     --suffix $SUFFIX \
@@ -21,7 +20,6 @@ python src/sn_script/speech2text.py \
     --chunk_size $CHUNK_SIZE
 
 python src/sn_script/speech2text.py \
-    --target_game "all" \
     --half 2 \
     --model $MODEL \
     --suffix $SUFFIX \

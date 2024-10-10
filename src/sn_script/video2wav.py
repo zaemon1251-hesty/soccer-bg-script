@@ -1,22 +1,14 @@
 import os
 import subprocess
 from itertools import product
-from typing import List
+from typing import List  # noqa
 
 from loguru import logger
 from SoccerNet.Downloader import getListGames
 from tap import Tap
 from tqdm import tqdm
 
-try:
-    from sn_script.config import Config
-except ModuleNotFoundError:
-    import sys
-    sys.path.append(".")
-    from src.sn_script.config import Config
-
-
-GAMES: List[str] = getListGames("all", task="caption")
+GAMES: List[str] = getListGames("all", task="caption")  # noqa: UP006
 
 
 class Video2WavArguments(Tap):

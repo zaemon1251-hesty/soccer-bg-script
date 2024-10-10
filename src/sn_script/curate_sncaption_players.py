@@ -1,3 +1,9 @@
+"""
+要約
+- sn-caption のプレイヤー情報を抽出
+入出力
+- jsons to csv
+"""
 import json
 from datetime import datetime
 

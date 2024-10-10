@@ -1,3 +1,9 @@
+"""
+要約
+- whisperの出力した実況コメントスパンを加工してできたjsonlファイルをcsvに変換する
+入出力
+- jsonlines to csv
+"""
 import csv
 import json
 import os

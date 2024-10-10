@@ -2,7 +2,7 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Literal, Optional
+from typing import List, Literal, Optional  # noqa: UP035 python3.8で動くようにするため
 
 import whisper
 import whisperx
@@ -14,12 +14,12 @@ from tqdm import tqdm
 from whisperx.asr import FasterWhisperPipeline
 
 try:
-    from sn_script.config import Config, half_number
+    from sn_script.config import Config
 except ModuleNotFoundError:
     import sys
 
     sys.path.append(".")
-    from src.sn_script.config import Config, half_number
+    from src.sn_script.config import Config
 
 
 SttModels = Literal[
@@ -34,11 +34,14 @@ SttModels = Literal[
 
 # コマンドライン引数を設定
 class Speech2TextArguments(Tap):
-    target_game: str = "all"
+    target_games: Optional[List[str]] = None # noqa: UP006, UP007
     suffix: str = ""
     model: SttModels = "whisper-large-v2"
     half: str = 1
     hf_token: str = ""
+    task = "transcribe"
+    device: str = "cuda"
+    device_index: int = 0
 
     # whisperx の VADの設定
     vad_onset: float = 0.500
@@ -55,6 +58,9 @@ class Speech2TextArguments(Tap):
     window_size_samples: int = 1024
     speech_pad_ms: int = 400
 
+    def configure(self):
+        self.add_argument("--target_games", nargs="*")
+
 
 def get_stt_model(model_name: SttModels, args: Speech2TextArguments=None):
     if model_name == "whisper-large-v2":
@@ -62,17 +68,19 @@ def get_stt_model(model_name: SttModels, args: Speech2TextArguments=None):
     elif model_name == "faster-whisper-large-v2":
         return WhisperModel(
             "large-v2",
-            device="cuda",
+            device=args.device,
+            device_index=args.device_index,
         )
     elif model_name == "faster-whisper-large-v3":
         return WhisperModel(
             "large-v3",
-            device="cuda",
+            device=args.device,
+            device_index=args.device_index,
         )
     elif model_name == "whisperx-large-v2":
-        return whisperx.load_model("large-v2", device="cuda", vad_options=args.vad_option)
+        return whisperx.load_model("large-v2", device=args.device, device_index=args.device_index, vad_options=args.vad_option)
     elif model_name == "whisperx-large-v3":
-        return whisperx.load_model("large-v3", device="cuda", vad_options=args.vad_option)
+        return whisperx.load_model("large-v3", device=args.device, device_index=args.device_index, vad_options=args.vad_option)
     elif model_name == "conformer":
         raise NotImplementedError("Conformer model is not implemented yet")
     elif model_name == "reason":
@@ -84,10 +92,13 @@ def get_stt_model(model_name: SttModels, args: Speech2TextArguments=None):
 
 def main(args: Speech2TextArguments):
     target_games = []
-    if args.target_game == "all":
+    if args.target_games is None:
+        logger.info("Target games are not specified. Use all games.")
         target_games = Config.targets
+    elif isinstance(args.target_games, list):
+        target_games = args.target_games
     else:
-        target_games = [args.target_game]
+        raise ValueError(f"Invalid target_game: {args.target_games}")
 
     if args.model in ("faster-whisper-large-v2", "faster-whisper-large-v3"):
         vad_option = VadOptions(
@@ -107,7 +118,7 @@ def main(args: Speech2TextArguments):
         args.vad_option = vad_option
 
     model = get_stt_model(args.model, args=args)
-
+    logger.info(f"{args.__dict__=}")
     logger.info("Start transcribing")
     for target in tqdm(target_games):
         target_dir_path = Config.base_dir / target
@@ -125,6 +136,10 @@ def run_transcribe(model, game_dir: Path, args: Speech2TextArguments):
     output_text_path = game_dir / f"{args.half}_224p{args.suffix}.txt"
     output_json_path = game_dir / f"{args.half}_224p{args.suffix}.json"
 
+    if output_json_path.exists():
+        logger.info(f"すでに存在します: {output_json_path}")
+        return
+
     if args.model in ("faster-whisper-large-v2", "faster-whisper-large-v3"):
         assert isinstance(model, WhisperModel), f"Model is not faster-whisper: {model}"
 
@@ -132,6 +147,7 @@ def run_transcribe(model, game_dir: Path, args: Speech2TextArguments):
             str(video_path),
             vad_filter=True,
             vad_parameters=args.vad_option,
+            task=args.task,
         )
         # iteratorからlistに変換
         segments = list(segments)
@@ -156,17 +172,20 @@ def run_transcribe(model, game_dir: Path, args: Speech2TextArguments):
         result = model.transcribe(
             audio,
             chunk_size=args.chunk_size,
+            task=args.task,
         )
         language = result["language"]
 
-        # forced-alignment
-        model_a, metadata = whisperx.load_align_model(language_code=language, device="cuda")
-        result = whisperx.align(result["segments"], model_a, metadata, audio, "cuda", return_char_alignments=False)
-
-        # 話者分離
-        diarize_model = whisperx.DiarizationPipeline(use_auth_token=args.hf_token, device="cuda")
-        diarize_segments = diarize_model(str(video_path))
-        result = whisperx.assign_word_speakers(diarize_segments, result)
+        try:
+            # forced-alignment
+            model_a, metadata = whisperx.load_align_model(language_code=language, device="cuda")
+            result = whisperx.align(result["segments"], model_a, metadata, audio, "cuda", return_char_alignments=False)
+            # 話者分離
+            diarize_model = whisperx.DiarizationPipeline(use_auth_token=args.hf_token, device="cuda")
+            diarize_segments = diarize_model(str(video_path))
+            result = whisperx.assign_word_speakers(diarize_segments, result)
+        except Exception as e:
+            logger.error(f"音素との対応付け・話者分離に失敗しました: {e}")
 
         # メタ情報の追加
         result["language"] = language
@@ -186,7 +205,8 @@ def run_transcribe(model, game_dir: Path, args: Speech2TextArguments):
         assert model.is_multilingual
         result = model.transcribe(
             str(video_path),
-            verbose=True
+            verbose=True,
+            task=args.task,
         )
         with open(output_text_path, "w") as f:
             f.writelines(result["text"])
