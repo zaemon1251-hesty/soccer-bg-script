@@ -26,6 +26,8 @@ dependencies = [
     "whisper>=1.1.10",
     "whisperx",
     "faster-whisper>=1.0.0",
+    "opencv-python>=4.10.0.84",
+    "torchvision>=0.19.1",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"

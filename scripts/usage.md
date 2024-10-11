@@ -6,7 +6,7 @@
 
 SCBI (Soccer Commentary Background Information): ラベル付き実況コメントデータ
 
-1. `./scripts/stable/speech2text-whisperx-stable.sh` で音声から書き起こしjsonを出力
+1. `./scripts/stable/speech2text-whisperx-stable.sh`
 2. `./scripts/stable/whisper2csv-whisperx-stable.sh` でjsonからcsvを出力
 
 ## SoccerNet各種データのダウンロード

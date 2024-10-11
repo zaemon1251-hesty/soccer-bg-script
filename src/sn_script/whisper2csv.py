@@ -84,7 +84,7 @@ def run_to_csv_stable(args: Whisper2CsvArguments):
     with open(args.output_csv, "w") as f:
         writer = csv.writer(f)
         writer.writerow(["id", "game", "half", "start", "end", "text"])
-        for item in enumerate(items):
+        for item in items:
             writer.writerow(
                 [
                     item["id"],
