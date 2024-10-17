@@ -9,3 +9,5 @@ annotation_tool/audio
 !annotation_tool/*.txt
 
 logs/
+
+database/batch_jsonline
