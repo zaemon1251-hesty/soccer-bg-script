@@ -3,6 +3,7 @@ from datetime import datetime
 
 from loguru import logger
 from openai import OpenAI
+from openai.types import Batch
 from tap import Tap
 
 # ログの設定
@@ -13,11 +14,20 @@ logger.add(f"logs/post_batch_openai_{time_str}.log")
 
 class PostBatchOpenAIArguments(Tap):
     type: str
-    llm_batch_jsonl_dir: str # 分割されたJSONLファイルのディレクトリ
+
+    # sendの場合
+    llm_batch_jsonl_dir: str = None # 分割されたJSONLファイルのディレクトリ
+
+    # retrieveの場合
     batch_id: str = None # バッチID
+
+    # save_allの場合
+    batch_ids: list[str] = [] # バッチIDのリスト
+    output_dir: str = "output" # 出力ディレクトリ
 
     def configure(self) -> None:
         self.add_argument("type", type=str)
+        self.add_argument("--batch_ids", nargs="*", type=str)
 
 
 def send_file_to_openai(file_path):
@@ -66,6 +76,21 @@ def retrieve(args: PostBatchOpenAIArguments):
     logger.info(batch_job)
 
 
+def save_all(args: PostBatchOpenAIArguments):
+    for batch_id in args.batch_ids:
+        batch_job = client.batches.retrieve(batch_id)
+        save_output_file(batch_job, save_dir=args.output_dir)
+
+
+def save_output_file(batch_job: Batch, save_dir: str = "."):
+    """バッチジョブの出力ファイルを保存"""
+    content = client.files.content(batch_job.output_file_id).content
+    output_file_path = os.path.join(save_dir, f"{batch_job.id}.jsonl")
+    with open(output_file_path, 'wb') as file:
+        file.write(content)
+    logger.info(f"Output file saved: {output_file_path}")
+
+
 if __name__ == "__main__":
     args = PostBatchOpenAIArguments().parse_args()
 
@@ -77,6 +102,8 @@ if __name__ == "__main__":
         send(args)
     elif args.type == "retrieve":
         retrieve(args)
+    elif args.type == "save_all":
+        save_all(args)
     else:
-        raise ValueError("Invalid type")
+        raise ValueError(f"Invalid type: {args.type}")
 

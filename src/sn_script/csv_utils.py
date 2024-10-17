@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import time
 from functools import wraps
 from pathlib import Path
@@ -218,6 +219,26 @@ def split_dataset_csv(subcategory_annotated_csv_path, val_csv_path, fewshot_csv_
         index=False,
     )
 
+def extract_info_from_jsonl(jsonl_path: str):
+    informations = []
+    with open(jsonl_path) as file:
+        for line in file:
+            # 各行をJSONとして読み込む
+            data = json.loads(line)
+
+            # "custom_id"を取得
+            custom_id = data.get('custom_id')
+            custom_id = int(custom_id)
+
+            # "content"フィールドの文字列をデコードしてJSONに変換
+            content_str = data['response']['body']['choices'][0]['message']['content']
+            content_json = json.loads(content_str)
+            reason = content_json.get('reason')
+            category = content_json.get('category')
+            informations.append({'custom_id': custom_id, '備考': reason, binary_category_name: category})
+    return informations
+
+
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
@@ -225,6 +246,9 @@ if __name__ == "__main__":
     parser = ArgumentParser()
 
     parser.add_argument("type", type=str, help="type of function to run")
+    parser.add_argument("--input_csv", type=str, default=None)
+    parser.add_argument("--output_csv", type=str, default=None)
+    parser.add_argument("--batch_result_dir", type=str, default=None, help="directory of batch results (jsonl files)")
     args = parser.parse_args()
 
     if args.type == "create":
@@ -239,5 +263,21 @@ if __name__ == "__main__":
         fewshot_csv_path = Config.target_base_dir / f"{half_number}_{random_seed}_val_subcategory_annotation.csv"
 
         split_dataset_csv(subcategory_annotated_csv_path, fewshot_csv_path, val_csv_path)
+    elif args.type == "clean":
+        # TODO notebookから移植
+        raise NotImplementedError()
+    elif args.type == "marge_result":
+        input_df = pd.read_csv(args.input_csv)
+        results = []
+        for file_name in os.listdir(args.batch_result_dir):
+            jsonl_path = os.path.join(args.batch_result_dir, file_name)
+            results.extend(extract_info_from_jsonl(jsonl_path))
+
+        result_df = pd.DataFrame(results)
+        input_df.drop(columns=["備考", binary_category_name], inplace=True)
+        input_df = input_df.astype({"id": int})
+        output_df = pd.merge(input_df, result_df, left_on="id", right_on="custom_id") # idとcustom_idは一対一対応
+        output_df.drop(columns=["custom_id"], inplace=True)
+        output_df.to_csv(args.output_csv, index=False)
     else:
         raise ValueError(f"Invalid type: {args.type}")

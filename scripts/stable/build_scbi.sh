@@ -40,4 +40,4 @@ python src/sn_script/whisper2csv.py \
 
 
 ################ llm_annotator ################
-# TODO
+./scripts/stable/llm_annotation_local.sh
