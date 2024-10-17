@@ -11,3 +11,4 @@ annotation_tool/audio
 logs/
 
 database/batch_jsonline
+*.zip
