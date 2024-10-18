@@ -156,10 +156,38 @@ class EvaluateAnnotationSingle(EvaluateAnnotationBase):
             on="id",
             suffixes=("_llm", "_human"),
         )
+        self._preprocess(binary_category_name)
+
         self.accuracy_runner = evaluate.load("accuracy")
         self.precision_runner = evaluate.load("precision")
         self.recall_runner = evaluate.load("recall")
         self.f1_runner = evaluate.load("f1")
+
+    def _preprocess(self, column):
+        self.llm_human_df[column + "_llm"] = self.llm_human_df[column + "_llm"].apply(
+            self._convert_category
+        )
+        self.llm_human_df[column + "_human"] = self.llm_human_df[column + "_human"].apply(
+            self._convert_category
+        )
+
+    def _convert_category(self, x: int | float | str) -> int | None:
+        if isinstance(x, int):
+            return x
+        elif isinstance(x, float) and x.is_integer():
+            return int(x)
+        elif isinstance(x, str) and x.isdigit():
+            return int(x)
+        elif isinstance(x, str) and x.lower() == "yes":
+            return 1
+        elif isinstance(x, str) and x.lower() == "no":
+            return 0
+        elif isinstance(x, str) and x == "Include":
+            return 1
+        elif isinstance(x, str) and x == "Not Include":
+            return 0
+        else:
+            return None
 
     def evaluate(self) -> LlmAnnotationResult:
         """
@@ -345,10 +373,10 @@ if __name__ == "__main__":
 
     # Evaluate
     if args.target == "binary":
-        evaluator = EvaluateAnnotationSingle()
+        evaluator = EvaluateAnnotationSingle(args)
         result = evaluator.evaluate()
         logger.info(result)
-    if args.target == "subcategory":
+    elif args.target == "subcategory":
         # Comment Relevant と Video Relevant
         evaluate_subcategory(args)
     else:

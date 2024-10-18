@@ -265,6 +265,8 @@ if __name__ == "__main__":
     elif args.type == "denoised_to_llm_ready":
         input_df = pd.read_csv(args.input_csv)
         input_df = input_df.astype({"id": int})
+        input_df["備考"] = pd.NA
+        input_df[binary_category_name] = pd.NA
         input_df.to_csv(args.output_csv, index=False)
     elif args.type == "clean":
         # TODO notebookから移植

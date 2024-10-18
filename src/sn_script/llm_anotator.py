@@ -44,25 +44,19 @@ class LlmAnotatorArgs(Tap):
 
     # mainの場合
     target: Literal["binary", "subcategory"] = "binary"
-    llm_ready_path: str = None
-    llm_annotation_path: str = None
-    all_csv_path: str = None
-    llm_log_jsonl_path: str = None
+    llm_ready_path: str = None # 入力 path (all_csv_pathの部分集合)
+    llm_annotation_path: str = None # 出力 path
+    all_csv_path: str = None # すべてのコメントが含まれるCSV
+    llm_log_jsonl_path: str = None # ログを保存するjsonlファイルのパス (batchの場合はbathc用のjsonlファイルを保存する)
     prompt_yaml_path: str = None
     model_type: str = "gpt-3.5-turbo-1106"
     batch: bool = False
 
     # output_target_prompt の場合
-    human_annotation_csv_path: str
-    target_prompt_path: str
+    human_annotation_csv_path: str = None
+    target_prompt_path: str = None
     filter: bool = False
     csv_mode: bool = False
-
-    def configure(self) -> None:
-        self.add_argument("type", type=str)
-        self.add_argument("batch", type=bool, action="store_true")
-        self.add_argument("filter", type=bool, action="store_true")
-        self.add_argument("csv_mode", type=bool, action="store_true")
 
 
 # プロンプト作成用の引数
@@ -337,7 +331,7 @@ def create_target_prompt(
 
     previous_comments_data = all_comment_df[
         (all_comment_df["game"] == target_comment_data["game"])
-        & (all_comment_df.index < comment_id)
+        & (all_comment_df["id"] < comment_id)
     ].tail(context_length)
 
     previous_comments = previous_comments_data["text"].tolist()
@@ -369,9 +363,9 @@ def get_formatted_comment(prompt_args: PromptArgments) -> str:
     """分類対象のコメントに関するプロンプトを作成する"""
 
     message = f"""
-gap (seconds) => {prompt_args.gap}
-previous comments => {" ".join(prompt_args.previous_comments)}
-comment => {prompt_args.comment}
+- game => {prompt_args.game}
+- previous comments => {" ".join(prompt_args.previous_comments)}
+- comment => {prompt_args.comment}
 """
 
     return message
@@ -453,7 +447,7 @@ if __name__ == "__main__":
             api_key=os.environ["OPENAI_API_KEY"],
         )
     if args.type == "main":
-        main(args.target)
+        main(args)
 
     elif args.type == "output_target_prompt":
         # ChatGPT用のプロンプトを作成する
