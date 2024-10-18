@@ -5,6 +5,7 @@ import os
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
+from typing import Literal
 
 import pandas as pd
 import torch
@@ -12,6 +13,7 @@ import transformers
 import yaml
 from loguru import logger
 from openai import OpenAI
+from tap import Tap
 from tqdm import tqdm
 from transformers import AutoTokenizer
 
@@ -19,10 +21,6 @@ try:
     from sn_script.config import (
         Config,
         binary_category_name,
-        half_number,
-        model_type,
-        random_seed,
-        # category_name,
         subcategory_name,
     )
     from sn_script.csv_utils import gametime_to_seconds
@@ -33,16 +31,38 @@ except ModuleNotFoundError:
     from src.sn_script.config import (
         Config,
         binary_category_name,
-        half_number,
-        model_type,
-        random_seed,
-        # category_name,
         subcategory_name,
     )
     from src.sn_script.csv_utils import gametime_to_seconds
 
 # pandasのprogress_applyを使うために必要
 tqdm.pandas()
+
+# コマンドライン引数をパースするクラス
+class LlmAnotatorArgs(Tap):
+    type: Literal["main", "output_target_prompt"] = "main"
+
+    # mainの場合
+    target: Literal["binary", "subcategory"] = "binary"
+    llm_ready_path: str = None
+    llm_annotation_path: str = None
+    all_csv_path: str = None
+    llm_log_jsonl_path: str = None
+    prompt_yaml_path: str = None
+    model_type: str = "gpt-3.5-turbo-1106"
+    batch: bool = False
+
+    # output_target_prompt の場合
+    human_annotation_csv_path: str
+    target_prompt_path: str
+    filter: bool = False
+    csv_mode: bool = False
+
+    def configure(self) -> None:
+        self.add_argument("type", type=str)
+        self.add_argument("batch", type=bool, action="store_true")
+        self.add_argument("filter", type=bool, action="store_true")
+        self.add_argument("csv_mode", type=bool, action="store_true")
 
 
 # プロンプト作成用の引数
@@ -57,158 +77,121 @@ class PromptArgments:
     end: str | None = None
 
 
-# ALL_CSV_PATH = Config.target_base_dir / f"denoised_{half_number}_tokenized_224p_all.csv"
-ALL_CSV_PATH = (
-    Config.target_base_dir / f"500game_denoised_{half_number}_tokenized_224p_all.csv"
-)
+def annotate_category_binary(row, model_type, log_jsonl_path):
+    """
 
-PROMPT_YAML_PATH = Config.target_base_dir.parent / "resources" / "classify_comment.yaml"
-SUBCATEGORY_YAML_PATH = (
-    Config.target_base_dir.parent
-    / "resources"
-    / f"6-{half_number}_classify_comment-subcategory.yaml"
-)
+    Args:
+        row (row object): dataframe single row
 
-# load yaml
-binary_prompt_config = yaml.safe_load(open(PROMPT_YAML_PATH))
-subcategory_prompt_config = yaml.safe_load(open(SUBCATEGORY_YAML_PATH))
+    Returns:
+        str: binary category
+        str: reason for category
+    """
+    comment_id = row["id"]
+    if not pd.isnull(row[binary_category_name]):
+        return row[binary_category_name], row["備考"]
+    try:
+        result = classify_comment(model_type, comment_id, "binary")
+        category = result.get("category")
+        reason = result.get("reason")
 
-# load all comments
-all_comment_df = pd.read_csv(ALL_CSV_PATH)
+        # jsonl形式で保存する
+        with open(log_jsonl_path, "a") as f:
+            result["comment_id"] = comment_id
+            json.dump(result, f)
+            f.write("\n")
+
+        return category, reason
+    except Exception as e:
+        logger.error(f"comment_id={comment_id} couldn't be annotated.")
+        logger.error(e)
+        return None, None
+
+def annotate_subcategory(row, model_type, log_jsonl_path):
+    """
+    処理フロー
+    1. まず、付加的情報が含まれてるかどうかを　PROMPT_YAML_PATH のプロンプトを通して確認する
+    2. もし付加的情報が含まれていたら、SUBCATEGORY_YAML_PATH　のプロンプトを通してサブカテゴリを予測する
+    3. 付加的情報が含まれていなかったら、0を返す
+
+    Args:
+        row (row object): dataframe single row
+
+    Returns:
+        str: category
+        str: reason for category
+    """
+    comment_id = row["id"]
+    try:
+        # 付加的情報が含まれている場合
+        subcategory_result = classify_comment(model_type, comment_id, "subcategory")
+
+        # jsonl形式でアノテーション結果を保存する
+        with open(log_jsonl_path, "a") as f:
+            subcategory_result["comment_id"] = comment_id
+            json.dump(subcategory_result, f)
+            f.write("\n")
+
+        subcategory = subcategory_result.get("subcategory")
+        logger.info(f"subcategory:{subcategory}")
+        subcategory_reason = subcategory_result.get("reason")
+        return subcategory, subcategory_reason
+
+    except Exception as e:
+        logger.error(f"comment_id={comment_id} is not annotated.")
+        logger.error(e)
+        return None, None
 
 
-if model_type == "meta-llama/Llama-2-70b-chat-hf":
-    # use local llama model
-    tokenizer = AutoTokenizer.from_pretrained(model_type)
-    pipeline = transformers.pipeline(
-        "text-generation",
-        model=model_type,
-        torch_dtype=torch.float16,
-        device_map="auto",
-    )
-
-    client = None
-else:
-    tokenizer = None
-    pipeline = None
-
-    # use openai api
-    client = OpenAI(
-        api_key=os.environ["OPENAI_API_KEY"],
-    )
-
-
-def main(target: str = "binary"):
+def main(args: LlmAnotatorArgs):
     """LLMによるアノテーションを行う
 
-    以下の2つがグローバル変数として定義されていることが前提
-    - LLM_ANOTATION_CSV_PATH # アノテーション結果を保存するcsvファイル (ラベルの列だけ空の状態)
-    - LLM_ANNOTATION_JSONL_PATH  # ストリームで保存するためのjsonlファイル
     """
-    annotation_df = pd.read_csv(LLM_ANOTATION_CSV_PATH)
+    annotation_df = pd.read_csv(args.llm_ready_path)
 
     time_str = datetime.now().strftime("%Y%m%d-%H%M%S")
 
     logger.add(
         f"logs/llm_anotator_{time_str}.log",
     )
-    logger.info(f"{model_type=}")
-    logger.info(f"{random_seed=}")
-    logger.info(f"{half_number=}")
+    logger.info(f"{args.model_type=}")
 
-    def annotate_category_binary(row):
-        """_summary_
-
-        Args:
-            row (row object): dataframe single row
-
-        Returns:
-            str: binary category
-            str: reason for category
-        """
-        comment_id = row["id"]
-        if not pd.isnull(row[binary_category_name]):
-            return row[binary_category_name], row["備考"]
-        try:
-            result = classify_comment(model_type, comment_id, "binary")
-            category = result.get("category")
-            reason = result.get("reason")
-
-            # jsonl形式で保存する
-            with open(LLM_ANNOTATION_JSONL_PATH, "a") as f:
-                result["comment_id"] = comment_id
-                json.dump(result, f)
-                f.write("\n")
-
-            return category, reason
-        except Exception as e:
-            logger.error(f"comment_id={comment_id} couldn't be annotated.")
-            logger.error(e)
-            return None, None
-
-    def annotate_subcategory(row):
-        """
-        処理フロー
-        1. まず、付加的情報が含まれてるかどうかを　PROMPT_YAML_PATH のプロンプトを通して確認する
-        2. もし付加的情報が含まれていたら、SUBCATEGORY_YAML_PATH　のプロンプトを通してサブカテゴリを予測する
-        3. 付加的情報が含まれていなかったら、0を返す
-
-        Args:
-            row (row object): dataframe single row
-
-        Returns:
-            str: category
-            str: reason for category
-        """
-        comment_id = row["id"]
-        try:
-            # 付加的情報が含まれている場合
-            subcategory_result = classify_comment(model_type, comment_id, "subcategory")
-
-            # jsonl形式でアノテーション結果を保存する
-            with open(LLM_ANNOTATION_JSONL_PATH, "a") as f:
-                subcategory_result["comment_id"] = comment_id
-                json.dump(subcategory_result, f)
-                f.write("\n")
-
-            subcategory = subcategory_result.get("subcategory")
-            logger.info(f"subcategory:{subcategory}")
-            subcategory_reason = subcategory_result.get("reason")
-            return subcategory, subcategory_reason
-
-        except Exception as e:
-            logger.error(f"comment_id={comment_id} is not annotated.")
-            logger.error(e)
-            return None, None
-
-    if target == "binary":
+    if args.target == "binary":
+        if args.batch:
+            generate_jsonl_for_batch_api(
+                annotation_df, args.llm_log_jsonl_path, args.model_type
+            )
+            logger.info(f"Done generating jsonl for batch api. Saved to {args.llm_log_jsonl_path}")
+            return
         logger.info("Start binary classification.")
         annotation_df[[binary_category_name, "備考"]] = annotation_df.progress_apply(
-            lambda r: annotate_category_binary(r),
+            lambda r: annotate_category_binary(r, args.model_type, args.llm_log_jsonl_path),
             axis=1,
             result_type="expand",
         )
-        annotation_df.to_csv(LLM_ANOTATION_CSV_PATH, index=False)
-        logger.info(f"Done binary classification. Saved to {LLM_ANOTATION_CSV_PATH}")
-    elif target == "subcategory":
+        annotation_df.to_csv(args.llm_annotation_path, index=False)
+        logger.info(f"Done binary classification. Saved to {args.llm_annotation_path}")
+    elif args.target == "subcategory":
         logger.info("Start subcategory classification.")
         annotation_df[[subcategory_name, "備考_2"]] = annotation_df.progress_apply(
-            lambda r: annotate_subcategory(r),
+            lambda r: annotate_subcategory(r, args.model_type, args.llm_log_jsonl_path),
             axis=1,
             result_type="expand",
         )
-        annotation_df.to_csv(LLM_ANOTATION_CSV_PATH, index=False)
+        annotation_df.to_csv(args.llm_annotation_path, index=False)
         logger.info(
-            f"Done subcategory classification. Saved to {LLM_ANOTATION_CSV_PATH}"
+            f"Done subcategory classification. Saved to {args.llm_annotation_path}"
         )
     else:
-        raise ValueError(f"Invalid target:{target}")
+        raise ValueError(f"Invalid target:{args.target}")
 
 
 def classify_comment(model_type: str, comment_id: int, target="binary") -> dict:
     if target == "binary":
+        global binary_prompt_config
         prompt_config = binary_prompt_config
     elif target == "subcategory":
+        global subcategory_prompt_config
         prompt_config = subcategory_prompt_config
     else:
         raise ValueError(f"Invalid target:{target}")
@@ -218,10 +201,10 @@ def classify_comment(model_type: str, comment_id: int, target="binary") -> dict:
     if model_type == "meta-llama/Llama-2-70b-chat-hf":
         return _classify_comment_with_llama(messages)
 
-    return _classify_comment_with_openai(messages)
+    return _classify_comment_with_openai(messages, model_type)
 
 
-def _classify_comment_with_openai(messages: list[str]) -> dict:
+def _classify_comment_with_openai(messages: list[str], model_type) -> dict:
     completion_params = {
         "model": model_type,
         "messages": messages,
@@ -240,6 +223,36 @@ def _classify_comment_with_openai(messages: list[str]) -> dict:
     except Exception as e:
         logger.error(e)
         return {}
+
+
+def generate_jsonl_for_batch_api(annotation_df: pd.DataFrame, log_jsonl_path: str, model_type) -> str:
+    """バッチAPI用のjsonlファイルを生成する"""
+    request_jsons = []
+    for _, row in annotation_df.iterrows():
+        comment_id = row["id"]
+        messages = get_messages(comment_id, binary_prompt_config, "binary")
+
+        completion_body = {
+            "model": model_type,
+            "messages": messages,
+            "n": 1,
+            "stop": None,
+            "temperature": 0.0,
+            "response_format": {"type": "json_object"},
+        }
+
+        request_params = {
+            "custom_id": f"{comment_id}",
+            "method": "POST",
+            "url": "/v1/chat/completions",
+            "body": completion_body,
+        }
+        request_jsons.append(request_params)
+
+    with open(log_jsonl_path, "w") as f:
+        for request_json in request_jsons:
+            json.dump(request_json, f)
+            f.write("\n")
 
 
 def _classify_comment_with_llama(messages: list[str]) -> dict:
@@ -268,7 +281,7 @@ def _classify_comment_with_llama(messages: list[str]) -> dict:
 def get_messages(comment_id: int, prompt_config: dict, target: str) -> list[str]:
     messages = []
 
-    if comment_id not in all_comment_df.index:
+    if comment_id not in all_comment_df["id"].values:
         raise ValueError(f"comment_id={comment_id} is not found.")
 
     description = prompt_config["description"]
@@ -371,120 +384,82 @@ def get_formatted_comment_csv(prompt_args: PromptArgments) -> str:
 
 def output_target_prompt(
     annotation_csv_path: Path,
-    target_csv_path: Path,
+    target_path: Path,
     filter: bool = False,
     csv_mode: bool = False,
     include_debug_info: bool = False,
 ):
-    if csv_mode and target_csv_path.suffix != ".csv":
-        raise ValueError(f"Invalid file extension:{target_csv_path.suffix}")
+    if csv_mode and target_path.suffix != ".csv":
+        raise ValueError(f"Invalid file extension:{target_path.suffix}")
 
     annotation_df = pd.read_csv(annotation_csv_path)
 
     # 付加的情報が含まれているコメントのみを抽出する
     if filter:
+        annotation_df[binary_category_name] = annotation_df[binary_category_name].astype(int)
         annotation_df = annotation_df[annotation_df[binary_category_name] == 1]
 
     target_list = []
 
-    # ヘッダ
-    target_list.append(
-        "id,game,start,end,gap(sec),prev,target,subcategory"
-    )
+    # ヘッダ csvモードの場合のみ
+    if csv_mode:
+        target_list.append(
+            "id,game,start,end,gap(sec),prev,target,subcategory"
+        )
 
     for comment_id in annotation_df["id"]:
         target_list.append(
             create_target_prompt(comment_id, csv_mode, include_debug_info)
         )
 
-    with open(target_csv_path, "w") as f:
+    with open(target_path, "w") as f:
         f.write("\n".join(target_list))
 
     return 0
 
 
 if __name__ == "__main__":
-    from argparse import ArgumentParser
 
-    parser = ArgumentParser()
+    args = LlmAnotatorArgs().parse_args()
 
-    parser.add_argument(
-        "type",
-        type=str,
-        help="type of function to run",
-        choices=["main", "output_target_prompt"],
-    )
-    parser.add_argument(
-        "--target",
-        type=str,
-        help="target for llm annotation category",
-        default="binary",
-        choices=["binary", "subcategory"],
-    )
-    parser.add_argument(
-        "--prefix", type=str, help="file name prefix for llm_annotation_df", default=""
-    )
-    parser.add_argument(
-        "--filter",
-        help="filter comments that contain additional information",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--csv_mode",
-        help="filter comments that contain additional information",
-        action="store_true",
-    )
-    args = parser.parse_args()
+    # load yaml
+    if args.target == "binary":
+        binary_prompt_config = yaml.safe_load(open(args.prompt_yaml_path))
+    elif args.target == "subcategory":
+        subcategory_prompt_config = yaml.safe_load(open(args.prompt_yaml_path))
+    else:
+        pass
 
+    # load all comments
+    all_comment_df = pd.read_csv(args.all_csv_path)
+
+    if args.model_type == "meta-llama/Llama-2-70b-chat-hf":
+        # use local llama model
+        tokenizer = AutoTokenizer.from_pretrained(args.model_type)
+        pipeline = transformers.pipeline(
+            "text-generation",
+            model=args.model_type,
+            torch_dtype=torch.float16,
+            device_map="auto",
+        )
+
+        client = None
+    else:
+        tokenizer = None
+        pipeline = None
+
+        # use openai api
+        client = OpenAI(
+            api_key=os.environ["OPENAI_API_KEY"],
+        )
     if args.type == "main":
-        if args.target == "binary":
-            LLM_ANOTATION_CSV_PATH = (
-                Config.target_base_dir
-                / f"{model_type}_{random_seed}_{half_number}_llm_annotation-20240104a.csv"
-                # f"{model_type}_500game_{half_number}_llm_annotation.csv"
-            )
-            LLM_ANNOTATION_JSONL_PATH = (
-                Config.target_base_dir
-                / f"{model_type}_{random_seed}_{half_number}_llm_annotation.jsonl"
-            )
-
-        elif args.target == "subcategory":
-            HUMAN_ANNOTAION_CSV_PATH = (
-                Config.target_base_dir / f"{half_number}_{random_seed}_val_subcategory_annotation.csv"
-            )
-            LLM_ANOTATION_CSV_PATH = (
-                Config.target_base_dir
-                / f"{args.prefix}_{model_type}_subcategory_llm_annotation.csv"
-            )
-
-            assert HUMAN_ANNOTAION_CSV_PATH.exists(), f"{HUMAN_ANNOTAION_CSV_PATH} is not found"
-
-            assert LLM_ANOTATION_CSV_PATH.exists(), f"{LLM_ANOTATION_CSV_PATH} is not found"
-
-            LLM_ANNOTATION_JSONL_PATH = (
-                Config.target_base_dir
-                / f"{args.prefix}_{model_type}_{random_seed}_{half_number}_subcategory_llm_annotation.jsonl"
-            )
-
-        else:
-            raise ValueError(f"Invalid target:{args.target}")
-
         main(args.target)
 
     elif args.type == "output_target_prompt":
         # ChatGPT用のプロンプトを作成する
-        target_filename = (
-            f"{half_number}_{random_seed}_supplementary_comments_annotation.csv"
-        )
-        ANNOTATION_CSV_PATH = Config.target_base_dir / target_filename
-        TARGET_PROMPT_CSV_PATH = (
-            Config.target_base_dir.parent
-            / "resources"
-            / f"{random_seed}_{half_number}_target_prompt_{args.filter}.csv"
-        )
         output_target_prompt(
-            ANNOTATION_CSV_PATH,
-            TARGET_PROMPT_CSV_PATH,
+            args.human_annotation_csv_path,
+            args.target_prompt_path,
             args.filter,
             args.csv_mode,
             False,

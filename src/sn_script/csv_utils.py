@@ -239,7 +239,6 @@ def extract_info_from_jsonl(jsonl_path: str):
     return informations
 
 
-
 if __name__ == "__main__":
     from argparse import ArgumentParser
 
@@ -263,6 +262,10 @@ if __name__ == "__main__":
         fewshot_csv_path = Config.target_base_dir / f"{half_number}_{random_seed}_val_subcategory_annotation.csv"
 
         split_dataset_csv(subcategory_annotated_csv_path, fewshot_csv_path, val_csv_path)
+    elif args.type == "denoised_to_llm_ready":
+        input_df = pd.read_csv(args.input_csv)
+        input_df = input_df.astype({"id": int})
+        input_df.to_csv(args.output_csv, index=False)
     elif args.type == "clean":
         # TODO notebookから移植
         raise NotImplementedError()

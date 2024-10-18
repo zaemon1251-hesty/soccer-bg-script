@@ -6,11 +6,11 @@ from abc import ABC, abstractmethod
 import evaluate
 import pandas as pd
 from loguru import logger
+from tap import Tap
 from typing_extensions import TypedDict
 
 try:
     from sn_script.config import (
-        Config,
         binary_category_name,
         category_name,
         half_number,
@@ -19,11 +19,7 @@ try:
         subcategory_name,
     )
 except ModuleNotFoundError:
-    import sys
-
-    sys.path.append(".")
     from src.sn_script.config import (
-        Config,
         binary_category_name,
         category_name,
         half_number,
@@ -33,14 +29,12 @@ except ModuleNotFoundError:
     )
 
 
-LLM_ANOTATION_CSV_PATH = (
-    Config.target_base_dir
-    / f"{model_type}_{random_seed}_{half_number}_llm_annotation.csv"
-)
-HUMAN_ANOTATION_CSV_PATH = (
-    Config.target_base_dir
-    / f"{random_seed}_{half_number}_moriy_annotation_preprocessed.csv"
-)
+
+class EvaluateAnnotationArguments(Tap):
+    target: str
+    preprocess: bool = False
+    human_csv: str = None
+    llm_csv: str = None
 
 
 class LlmAnnotationResult(TypedDict):
@@ -74,9 +68,9 @@ class EvaluateAnnotationBase(ABC):
 class EvaluateAnnotationMultilabel(EvaluateAnnotationBase):
     """calculate evaluation metrics for annotation"""
 
-    def __init__(self) -> None:
-        human_df = pd.read_csv(HUMAN_ANOTATION_CSV_PATH)
-        llm_df = pd.read_csv(LLM_ANOTATION_CSV_PATH)
+    def __init__(self, args: EvaluateAnnotationArguments) -> None:
+        human_df = pd.read_csv(args.human_csv)
+        llm_df = pd.read_csv(args.llm_csv)
 
         # 文字列として格納されている配列を配列化
         for col_name in [category_name, subcategory_name]:
@@ -148,9 +142,9 @@ class EvaluateAnnotationMultilabel(EvaluateAnnotationBase):
 class EvaluateAnnotationSingle(EvaluateAnnotationBase):
     """calculate evaluation metrics for annotation"""
 
-    def __init__(self) -> None:
-        human_df = pd.read_csv(HUMAN_ANOTATION_CSV_PATH)
-        llm_df = pd.read_csv(LLM_ANOTATION_CSV_PATH)
+    def __init__(self, args: EvaluateAnnotationArguments) -> None:
+        human_df = pd.read_csv(args.human_csv)
+        llm_df = pd.read_csv(args.llm_csv)
 
         assert human_df.shape == llm_df.shape
         assert human_df["id"].equals(llm_df["id"])
@@ -231,8 +225,8 @@ class EvaluateAnnotationSingle(EvaluateAnnotationBase):
         )
 
 
-def preprocess_human_annotation():
-    human_df = pd.read_csv(HUMAN_ANOTATION_CSV_PATH)
+def preprocess_human_annotation(human_csv: str):
+    human_df = pd.read_csv(human_csv)
     human_df[category_name] = human_df[category_name].str.split(" ")
     human_df[subcategory_name] = human_df[subcategory_name].astype(str).str.split(" ")
 
@@ -281,20 +275,20 @@ def preprocess_human_annotation():
             human_df.at[i, subcategory_name] = renewal_small_category
 
     human_df.to_csv(
-        str(HUMAN_ANOTATION_CSV_PATH).replace(".csv", "_preprocessed.csv"),
+        str(human_csv).replace(".csv", "_preprocessed.csv"),
         index=False,
     )
 
 
-def evaluate_subcategory():
+def evaluate_subcategory(args: EvaluateAnnotationArguments):
     from sklearn.metrics import classification_report
 
     logger.info(f"{model_type=}")
     logger.info(f"{random_seed=}")
     logger.info(f"{half_number=}")
 
-    human_df = pd.read_csv(SUBCATEGORY_ANNOTATION_CSV_PATH).sort_values("id")
-    llm_df = pd.read_csv(SUBCATEGORY_LLM_CSV_PATH).sort_values("id")
+    human_df = pd.read_csv(args.human_csv).sort_values("id")
+    llm_df = pd.read_csv(args.llm_csv).sort_values("id")
 
     assert set(human_df["id"]) == set(llm_df["id"]), f"diff exists: {set(llm_df['id']) ^ set(human_df['id'])}"
 
@@ -339,35 +333,23 @@ def evaluate_subcategory():
 
 
 if __name__ == "__main__":
-    from argparse import ArgumentParser
+    args = EvaluateAnnotationArguments().parse_args()
 
-    parser = ArgumentParser()
-    parser.add_argument("--target", type=str, help="type of function to run")
-    parser.add_argument("--preprocess", action="store_true")
-    parser.add_argument(
-        "--prefix", type=str, help="file name prefix for subcategory llm csv"
-    )
-    args = parser.parse_args()
     time_str = pd.Timestamp.now().strftime("%Y%m%d-%H%M%S")
     logger.add(
         f"logs/evaluate_llm_annotation_{time_str}.log"
     )
+    # 前処理
     if args.preprocess:
-        preprocess_human_annotation()
+        preprocess_human_annotation(args.human_csv)
+
+    # Evaluate
     if args.target == "binary":
         evaluator = EvaluateAnnotationSingle()
         result = evaluator.evaluate()
         logger.info(result)
     if args.target == "subcategory":
         # Comment Relevant と Video Relevant
-        SUBCATEGORY_ANNOTATION_CSV_PATH = (
-            Config.target_base_dir / f"{half_number}_{random_seed}_val_subcategory_annotation.csv"
-        )
-        SUBCATEGORY_LLM_CSV_PATH = (
-            Config.target_base_dir
-            / f"{args.prefix}_{model_type}_subcategory_llm_annotation.csv"
-        )
-
-        evaluate_subcategory()
+        evaluate_subcategory(args)
     else:
         raise ValueError(f"Invalid type: {args.target}")
