@@ -83,6 +83,14 @@ uv run python src/sn_script/csv_utils.py \
     --batch_result_dir $batch_jsonl_dir \
     --output_csv $dst
 
-# 名前を変更してコピー
+# # 名前を変更してコピー
 scbi_csv="$DATA_DIR/database/stable/scbi-v2.csv"
 cp $dst $scbi_csv
+
+# リッチな情報を追加する
+csv_path=$scbi_csv
+uv run python src/sn_script/whisper2csv.py \
+    --task add_rich_info \
+    --csv_path $csv_path \
+    --suffix $SUFFIX \
+    --suffix2 "_stable_version2"

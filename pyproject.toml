@@ -28,6 +28,10 @@ dependencies = [
     "faster-whisper>=1.0.0",
     "opencv-python>=4.10.0.84",
     "torchvision>=0.19.1",
+    "polars>=1.8.2",
+    "spacy>=3.7.5",
+    "plotly>=5.24.1",
+    "nbformat>=5.10.4",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"

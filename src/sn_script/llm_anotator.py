@@ -182,10 +182,10 @@ def main(args: LlmAnotatorArgs):
 
 def classify_comment(model_type: str, comment_id: int, target="binary") -> dict:
     if target == "binary":
-        global binary_prompt_config
+        # global binary_prompt_config
         prompt_config = binary_prompt_config
     elif target == "subcategory":
-        global subcategory_prompt_config
+        # global subcategory_prompt_config
         prompt_config = subcategory_prompt_config
     else:
         raise ValueError(f"Invalid target:{target}")
@@ -417,6 +417,7 @@ if __name__ == "__main__":
     args = LlmAnotatorArgs().parse_args()
 
     # load yaml
+    # TODO 1つでいいのでは？
     if args.target == "binary":
         binary_prompt_config = yaml.safe_load(open(args.prompt_yaml_path))
     elif args.target == "subcategory":
