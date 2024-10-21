@@ -5,24 +5,21 @@ import json
 import os
 import zipfile
 from pathlib import Path
-from typing import List
+from typing import List  # noqa: UP035
 
 from SoccerNet.Downloader import getListGames
 from SoccerNet.Evaluation.utils import FRAME_CLASS_DICTIONARY
 from tap import Tap
+from tqdm import tqdm
 
-try:
-    from sn_script.config import Config
-except ModuleNotFoundError:
-    import sys
-    sys.path.append(".")
-    from src.sn_script.config import Config
 
 class V3Json2GsrArguments(Tap):
     SoccerNet_path: str
     output_base_path: str
 
-GAMES: List[str] = getListGames("all")
+
+GAMES: List[str] = getListGames("all")  # noqa: UP006
+
 
 # Labels-GameState.json のファイル末尾に存在するカテゴリ情報
 MASTER_CATRGORIES = [
@@ -99,6 +96,7 @@ def game_to_id(game: str, half: int):
     video_id = f"{game_index:03d}_{half}"
     return video_id
 
+
 def convert_to_attributes(bbox_clazz):
     clazz_id = FRAME_CLASS_DICTIONARY.get(bbox_clazz)
     role = None
@@ -131,25 +129,19 @@ def convert_to_attributes(bbox_clazz):
     return role, team
 
 
-# from Labels-v3.json to Labels-GameState.json format
-def convert_to_gamestate(game_path, gamestate_base_dir):
-    v3_json_path = os.path.join(game_path, "Labels-v3.json")
-    with open(v3_json_path) as f:
-        v3_data = json.load(f)
-
+def get_gamestate_dict_and_metadatas(
+    v3_data: dict,
+    resol720p: bool = False
+):
     metadata = v3_data["GameMetadata"]
-
     list_actions = metadata["list_actions"]
-
+    list_replays = metadata["list_replays"]
     first_action = v3_data["actions"][list_actions[0]]
     last_action = v3_data["actions"][list_actions[-1]]
-
     split = first_action["imageMetadata"]["set"]
-
     half = first_action["imageMetadata"]["half"]
 
     super_id = game_to_id(metadata["UrlLocal"], half)
-
     game_id = v3_data["actions"][list_actions[0]]["imageMetadata"]["gameID"]
 
     # gamestateのフォーマット
@@ -158,7 +150,7 @@ def convert_to_gamestate(game_path, gamestate_base_dir):
             "version": "0.1",
             "game_id": game_id,
             "id": super_id,
-            "num_tracklets": "11", # TODO
+            "num_tracklets": "11", # TODO ちゃんと計算する
             "action_position": None,
             "action_class": None,
             "visibility": True,
@@ -167,100 +159,193 @@ def convert_to_gamestate(game_path, gamestate_base_dir):
             "clip_start": first_action["imageMetadata"]["position"],
             "clip_stop": last_action["imageMetadata"]["position"],
             "name": f"SNGS-{super_id}",
-            "im_dir": "img1",
-            "frame_rate": 5, # TODO
-            "seq_length": len(list_actions),
+            "im_dir": "img1" if not resol720p else "img720",
+            "frame_rate": 5, # TODO ちゃんと計算する
+            "seq_length": len(list_actions) + len(list_replays),
             "im_ext": ".png"
         },
         "images": [],
         "annotations": [],
         "categories": MASTER_CATRGORIES
     }
+    return (
+        gamestate_data,
+        super_id,
+        game_id,
+        split,
+        metadata,
+        list_actions,
+        list_replays,
+        half
+    )
 
-    # actionのみ対象にする replayはデータが足りない場合追加する
-    for image_name, action_data in v3_data['actions'].items():
-        # image情報
-        image_info = {
-            "is_labeled": True,
-            "image_id": f"{super_id}-{Path(image_name).stem}",  # Example, adjust with unique ID
-            "file_name": image_name,
-            "height": action_data["imageMetadata"]["height"],
-            "width": action_data["imageMetadata"]["width"],
-            "has_labeled_person": True,
-            "has_labeled_pitch": False,
-            "has_labeled_camera": False,
-            "ignore_regions_y": [],
-            "ignore_regions_x": []
+
+def get_image_dict(
+    image_name: str,
+    action_data: dict,
+    super_id: str
+):
+    # image情報
+    image_info = {
+        "is_labeled": True,
+        "image_id": f"{super_id}-{Path(image_name).stem}",
+        "file_name": image_name,
+        "height": action_data["imageMetadata"]["height"],
+        "width": action_data["imageMetadata"]["width"],
+        "has_labeled_person": True,
+        "has_labeled_pitch": False,
+        "has_labeled_camera": False,
+        "ignore_regions_y": [],
+        "ignore_regions_x": []
+    }
+    return image_info
+
+
+def process_copying_image(
+    image_name: str,
+    action_data: dict,
+    gamestate_data: dict,
+    game_path: str,
+    gamestate_base_dir: str,
+    split: str
+):
+    # 画像をコピーする準備
+    v3_image_path = os.path.join(game_path, "Frames-v3", image_name)
+    gamestate_image_path = os.path.join(gamestate_base_dir, split, gamestate_data["info"]["name"], gamestate_data["info"]["im_dir"], image_name)
+    Path(v3_image_path).parent.mkdir(parents=True, exist_ok=True)
+    Path(gamestate_image_path).parent.mkdir(parents=True, exist_ok=True)
+
+    # なければ解凍
+    try:
+        zipfilepath = ""
+        if not os.path.exists(v3_image_path):
+            tqdm.write(f"unzipping: {v3_image_path=}")
+            # unzip
+            zipfilepath = os.path.join(game_path, "Frames-v3.zip")
+            with zipfile.ZipFile(zipfilepath, 'r') as zippedFrames:  # noqa: N806
+                with zippedFrames.open(image_name) as imginfo:
+                    with open(gamestate_image_path, 'wb') as f:
+                        f.write(imginfo.read())
+    except FileExistsError:
+        # すでに解凍済み
+        pass
+    except Exception as e:
+        tqdm.write(f"{zipfilepath=}")
+        tqdm.write(f"{e=}")
+        # 画像が使えないから、ラベルまるごとスキップする
+        return
+
+    # コピー
+    if not os.path.exists(gamestate_image_path):
+        tqdm.write(f"Image copying: {v3_image_path=}")
+        with open(v3_image_path, 'rb') as f:
+            with open(gamestate_image_path, 'wb') as g:
+                g.write(f.read())
+
+
+def process_annotations(
+    image_name: str,
+    action_data: dict,
+    gamestate_data: dict,
+    super_id: str
+):
+    tqdm.write(f"Annotation: {image_name}")
+
+    for idx, bbox in enumerate(action_data['bboxes']):
+        role, team = convert_to_attributes(bbox['class'])
+        annotation = {
+            "id": f"{super_id}-{Path(image_name).stem}-{idx + 1}",
+            "image_id": f"{super_id}-{Path(image_name).stem}",
+            "track_id": idx + 1,
+            "supercategory": "object", # 物体を表す識別子
+            "category_id": 1,  # 人物のカテゴリID
+            "attributes": {
+                "role": role,
+                "jersey": bbox['ID'] if (isinstance(bbox['ID'], str) and bbox['ID'].isnumeric()) else None,
+                "team": team  # 'left' or 'right'
+            },
+            "bbox_image": {
+                "x": bbox["points"]["x1"],
+                "y": bbox["points"]["y1"],
+                "x_center": (bbox["points"]["x1"] + bbox["points"]["x2"]) / 2,
+                "y_center": (bbox["points"]["y1"] + bbox["points"]["y2"]) / 2,
+                "w": bbox["points"]["x2"] - bbox["points"]["x1"],
+                "h": bbox["points"]["y2"] - bbox["points"]["y1"]
+            },
+            "bbox_pitch": None,
+            "bbox_pitch_raw": None,
         }
+        gamestate_data['annotations'].append(annotation)
+
+    tqdm.write(f"End annotation: {image_name}")
+
+
+def process_scene(
+    scene: str,
+    gamestate_data: dict,
+    v3_data: dict,
+    game_path: str,
+    gamestate_base_dir: str,
+    split: str,
+    super_id: str
+):
+    tqdm.write(f"scene: {scene}")
+    for image_name, action_data in tqdm(v3_data[scene].items()):
+        tqdm.write(f"image name: {image_name}")
+        # image情報
+        image_info = get_image_dict(image_name, action_data, super_id)
         gamestate_data['images'].append(image_info)
+        # 画像をコピー
+        process_copying_image(image_name, action_data, gamestate_data, game_path, gamestate_base_dir, split)
+        # アノテーションを追加
+        process_annotations(image_name, action_data, gamestate_data, super_id)
+    tqdm.write(f"End scene: {scene}")
 
-        # 画像をコピーする準備
-        v3_image_path = os.path.join(game_path, "Frames-v3", image_name)
-        gamestate_image_path = os.path.join(gamestate_base_dir, split, gamestate_data["info"]["name"], gamestate_data["info"]["im_dir"], image_name)
-        Path(v3_image_path).parent.mkdir(parents=True, exist_ok=True)
-        Path(gamestate_image_path).parent.mkdir(parents=True, exist_ok=True)
 
-        # なければ解凍
-        try:
-            zipfilepath = ""
-            if not os.path.exists(v3_image_path):
-                # unzip
-                zipfilepath = os.path.join(game_path, "Frames-v3.zip")
-                with zipfile.ZipFile(zipfilepath, 'r') as zippedFrames:  # noqa: N806
-                    with zippedFrames.open(image_name) as imginfo:
-                        with open(gamestate_image_path, 'wb') as f:
-                            f.write(imginfo.read())
-        except FileExistsError:
-            # すでに解凍済み
-            pass
-        except Exception as e:
-            print(f"{zipfilepath=}")
-            print(f"{e=}")
-            # 画像が使えないから、らべるまるごとスキップする
-            continue
-        # コピー
-        if not os.path.exists(gamestate_image_path):
-            with open(v3_image_path, 'rb') as f:
-                with open(gamestate_image_path, 'wb') as g:
-                    g.write(f.read())
+def convert_to_gamestate(game_path, gamestate_base_dir, resol720p=False):
+    """Labels-v3.json から Labels-GameState.json 形式に変換する"""
+    tqdm.write(f"Start game: {game_path}")
 
-        # bbox の変換
-        for idx, bbox in enumerate(action_data['bboxes']):
-            role, team = convert_to_attributes(bbox['class'])
-            annotation = {
-                "id": f"{super_id}-{Path(image_name).stem}-{idx + 1}",  # Example, adjust as needed
-                "image_id": f"{super_id}-{Path(image_name).stem}",
-                "track_id": idx + 1,
-                "supercategory": "object", # 物体を表す識別子
-                "category_id": 1,  # 人物のカテゴリID
-                "attributes": {
-                    "role": role,
-                    "jersey": bbox['ID'] if (isinstance(bbox['ID'], str) and bbox['ID'].isnumeric()) else None,  # Assuming ID is numeric
-                    "team": team  # Assuming class contains 'left' or 'right'
-                },
-                "bbox_image": {
-                    "x": bbox["points"]["x1"],
-                    "y": bbox["points"]["y1"],
-                    "x_center": (bbox["points"]["x1"] + bbox["points"]["x2"]) / 2,
-                    "y_center": (bbox["points"]["y1"] + bbox["points"]["y2"]) / 2,
-                    "w": bbox["points"]["x2"] - bbox["points"]["x1"],
-                    "h": bbox["points"]["y2"] - bbox["points"]["y1"]
-                },
-                "bbox_pitch": None,
-                "bbox_pitch_raw": None,
-            }
-            gamestate_data['annotations'].append(annotation)
+    v3_json_path = os.path.join(game_path, "Labels-v3.json")
+    v3_data = json.load(open(v3_json_path))
+    (
+        gamestate_data,
+        super_id,
+        game_id,
+        split,
+        metadata,
+        list_actions,
+        list_replays,
+        half
+    ) = get_gamestate_dict_and_metadatas(
+        v3_data,
+        resol720p
+    )
 
-    # Write to the new Labels-GameState.json file
+    for scene in tqdm(['actions', 'replays']):
+        # シーンごとに処理
+        process_scene(
+            scene,
+            gamestate_data,
+            v3_data,
+            game_path,
+            gamestate_base_dir,
+            split,
+            super_id
+        )
+
+    # 書き出し
     gamestate_json_path = os.path.join(gamestate_base_dir, split, gamestate_data["info"]["name"], "Labels-GameState.json")
     with open(gamestate_json_path, 'w') as f:
         json.dump(gamestate_data, f, indent=4)
+
+    tqdm.write(f"End game: {game_id}")
 
 if __name__ == "__main__":
     args = V3Json2GsrArguments().parse_args()
     # Example usage
     games = getListGames("all", task="frames")
 
-    for game in games:
+    for game in tqdm(games):
         game_path = os.path.join(args.SoccerNet_path, game)
         convert_to_gamestate(game_path, args.output_base_path)
