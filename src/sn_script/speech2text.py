@@ -38,10 +38,15 @@ class Speech2TextArguments(Tap):
     suffix: str = ""
     model: SttModels = "whisper-large-v2"
     half: str = 1
-    hf_token: str = ""
     task = "transcribe"
     device: str = "cuda"
     device_index: int = 0
+
+    # whisperx の 話者分離
+    hf_token: str = ""
+    num_speakers: int = None
+    min_speakers: int = None
+    max_speakers: int = None
 
     # whisperx の VADの設定
     vad_onset: float = 0.500
@@ -116,6 +121,11 @@ def main(args: Speech2TextArguments):
             "vad_offset": args.vad_offset,
         }
         args.vad_option = vad_option
+        args.speaker_option = {
+            "num_speakers": args.num_speakers,
+            "min_speakers": args.min_speakers,
+            "max_speakers": args.max_speakers,
+        }
 
     model = get_stt_model(args.model, args=args)
     logger.info(f"{args.__dict__=}")
@@ -182,7 +192,7 @@ def run_transcribe(model, game_dir: Path, args: Speech2TextArguments):
             result = whisperx.align(result["segments"], model_a, metadata, audio, "cuda", return_char_alignments=False)
             # 話者分離
             diarize_model = whisperx.DiarizationPipeline(use_auth_token=args.hf_token, device="cuda")
-            diarize_segments = diarize_model(str(video_path))
+            diarize_segments = diarize_model(str(video_path), **args.speaker_option) # TODO 基本は実況と解説だから、max_speakers=2 でいいかも
             result = whisperx.assign_word_speakers(diarize_segments, result)
         except Exception as e:
             logger.error(f"音素との対応付け・話者分離に失敗しました: {e}")

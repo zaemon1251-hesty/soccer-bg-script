@@ -3,9 +3,11 @@ import json
 from collections import defaultdict
 from functools import partial
 from itertools import product
-from typing import Literal
+from typing import List, Literal, Tuple
 
+import numpy as np
 import pandas as pd
+from scipy.spatial.distance import cdist
 from tap import Tap
 from tqdm import tqdm
 
@@ -139,22 +141,11 @@ def sample_game_by_language(args: Whisper2CsvArguments, n: int):
     return result_dict
 
 
+
 def add_rich_info(args: Whisper2CsvArguments):
-    """
-    1. 実況音声の言語(en,esなど)をつける
-    2. 話者分離の結果をつける
-    3. X -> English 元のテキストをアライメントする
-    args:
-        suffix -> translate の suffix
-        suffix2 -> transcribe の suffix
-        csv_path -> scbi-v2 csvファイルのパス
-
-    """
     assert args.csv_path is not None
-
     assert args.suffix is not None
     assert args.suffix2 is not None
-
 
     stable_df = pd.read_csv(args.csv_path)
 
@@ -163,61 +154,90 @@ def add_rich_info(args: Whisper2CsvArguments):
     else:
         game_list = Config.targets
 
-    # 実況音声の言語, 話者分離の結果をつける（構築前にやっておくべきだった）
+    # 実況音声の言語, 話者分離の結果をつける
+    if ("language" not in stable_df.columns) or ("speaker" not in stable_df.columns):
+        print("開始: 実況音声の言語, 話者分離結果の付与")
+        add_language_and_speaker(stable_df, game_list, args.suffix)
+        stable_df.to_csv(args.csv_path, index=False)
+    else:
+        print("すでに付与済み")
+
+    # X -> English 元のテキストを、dynamic time warping でアライメントする
+    print("開始: X -> English 対応付け")
+    add_src_text(stable_df, game_list, args.suffix2)
+
+    # 保存
+    stable_df.to_csv(args.csv_path, index=False)
+    print("終了")
+
+
+def add_language_and_speaker(df: pd.DataFrame, game_list: List[str], suffix: str): # noqa: UP006
     for game, half in tqdm(list(product(game_list, [1, 2]))):
-        json_basename = f"{half}_224p{args.suffix}.json"
+        json_basename = f"{half}_224p{suffix}.json"
         data = json.load(open(Config.base_dir / game / json_basename))
         language = data["language"]
-        stable_df.loc[
-            (stable_df["game"] == game) & (stable_df["half"] == half), "language"
-        ] = language
+
+        mask = (df["game"] == game) & (df["half"] == half)
+        df.loc[mask, "language"] = language
 
         for segment in data["segments"]:
-            start = segment["start"]
-            end = segment["end"]
+            start, end = segment["start"], segment["end"]
             speaker = segment.get("speaker", None)
+            segment_mask = mask & (df["start"] >= start - 0.5) & (df["end"] <= end + 0.5)
+            df.loc[segment_mask, "speaker"] = speaker
 
-            stable_df.loc[
-                (stable_df["game"] == game) &
-                (stable_df["half"] == half) &
-                (stable_df["start"] >= start - 0.5) &
-                (stable_df["end"] <= end + 0.5),
-                "speaker"
-            ] = speaker
 
-    # 一時的に保存
-    stable_df.to_csv(args.csv_path, index=False)
-
-    # X -> English 元のテキストをアライメントする
-    # Dynamic time warping (スコア:Jaccard係数) でアライメントする
+def add_src_text(df: pd.DataFrame, game_list: List[str], suffix2: str): # noqa: UP006
     for game, half in tqdm(list(product(game_list, [1, 2]))):
-        src_json_basename = f"{half}_224p{args.suffix2}.json"
+        src_json_basename = f"{half}_224p{suffix2}.json"
         src_data = json.load(open(Config.base_dir / game / src_json_basename))
 
-        for src_segment in enumerate(src_data["segments"]):
-            src_start = src_segment["start"]
-            src_end = src_segment["end"]
-            partial_func = partial(
-                jacard_coefficient, s2=[src_start, src_end]
-            )
-            idx = stable_df.loc[
-                (stable_df["game"] == game) &
-                (stable_df["half"] == half),
-                ["start", "end"]
-            ].apply(partial_func, axis=1).argmax(skipna=True)
-            stable_df.loc[idx, "src_text"] = src_segment["text"]
+        game_half_mask = (df["game"] == game) & (df["half"] == half)
+        game_half_df = df[game_half_mask]
+
+        if game_half_df.empty:
+            continue
+
+        src_segments = np.array([(seg["start"], seg["end"]) for seg in src_data["segments"]])
+        df_segments = game_half_df[["start", "end"]].values
+
+        # 全ての組み合わせに対してJaccard係数を計算
+        jaccard_matrix = calculate_jaccard_matrix(df_segments, src_segments)
+
+        # 最もJaccard係数が高いものを選択
+        best_matches = jaccard_matrix.argmax(axis=1)
+
+        # 対応するテキストを付与
+        df.loc[game_half_mask, "src_text"] = [
+            src_data["segments"][i]["text"]
+            if jaccard_matrix[j, i] > 0 else None
+            for j, i in enumerate(best_matches)
+        ]
 
 
-def jacard_coefficient(s1, s2):
-    # 区間 s1とs2 の Jaccard係数を計算
-    # s1 = [start1, end1]
-    # s2 = [start2, end2]
+def calculate_jaccard_matrix(s1: np.ndarray, s2: np.ndarray) -> np.ndarray:
+    assert s1.shape[1] == 2, f"Expected shape (n, 2), got {s1.shape}"
+    assert s2.shape[1] == 2, f"Expected shape (m, 2), got {s2.shape}"
+
+    # strat1, end1: (n, 1)
+    start1, end1 = s1[:, 0][:, None], s1[:, 1][:, None]
+
+    # strat2, end2: (m, 1)
+    start2, end2 = s2[:, 0], s2[:, 1]
+
+    # union, intersection: (n, m)
+    union = np.maximum(end1, end2) - np.minimum(start1, start2)
+    intersection = np.maximum(np.minimum(end1, end2) - np.maximum(start1, start2), 0)
+
+    return intersection / union
+
+
+def jacard_coefficient(s1: Tuple[float, float], s2: Tuple[float, float]) -> float:  # noqa: UP006
     start1, end1 = s1
     start2, end2 = s2
     union = max(end1, end2) - min(start1, start2)
     intersection = max(min(end1, end2) - max(start1, start2), 0)
-    return intersection / union
-
+    return intersection / union if union != 0 else 0
 
 if __name__ == "__main__":
     args = Whisper2CsvArguments().parse_args()
