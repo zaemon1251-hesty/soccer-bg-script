@@ -1,9 +1,8 @@
 import csv
 import json
 from collections import defaultdict
-from functools import partial
 from itertools import product
-from typing import List, Literal, Tuple
+from typing import List, Literal, Tuple  # noqa: UP035
 
 import numpy as np
 import pandas as pd
@@ -198,32 +197,32 @@ def add_src_text(df: pd.DataFrame, game_list: List[str], suffix2: str): # noqa: 
         if game_half_df.empty:
             continue
 
-        src_segments = np.array([(seg["start"], seg["end"]) for seg in src_data["segments"]])
-        df_segments = game_half_df[["start", "end"]].values
+        src_segments = np.array([(seg["start"], seg["end"]) for seg in src_data["segments"]]) # (m,2)
+        df_segments = game_half_df[["start", "end"]].values # (n,2)
 
-        # 全ての組み合わせに対してJaccard係数を計算
-        jaccard_matrix = calculate_jaccard_matrix(df_segments, src_segments)
+        # 全ての組み合わせに対してiouを計算
+        jaccard_matrix = calculate_iou_matrix(df_segments, src_segments) # (n,m)
 
-        # 最もJaccard係数が高いものを選択
-        best_matches = jaccard_matrix.argmax(axis=1)
+        # 最もiouが高いものを選択
+        best_matches = jaccard_matrix.argmax(axis=1) # (n,1)
 
         # 対応するテキストを付与
         df.loc[game_half_mask, "src_text"] = [
-            src_data["segments"][i]["text"]
-            if jaccard_matrix[j, i] > 0 else None
-            for j, i in enumerate(best_matches)
+            src_data["segments"][j]["text"]
+            if jaccard_matrix[i, j] > 0 else None # i->df_segmentsのindex, j->src_segmentsのindex
+            for i, j in enumerate(best_matches)
         ]
 
 
-def calculate_jaccard_matrix(s1: np.ndarray, s2: np.ndarray) -> np.ndarray:
+def calculate_iou_matrix(s1: np.ndarray, s2: np.ndarray) -> np.ndarray:
     assert s1.shape[1] == 2, f"Expected shape (n, 2), got {s1.shape}"
     assert s2.shape[1] == 2, f"Expected shape (m, 2), got {s2.shape}"
 
     # strat1, end1: (n, 1)
     start1, end1 = s1[:, 0][:, None], s1[:, 1][:, None]
 
-    # strat2, end2: (m, 1)
-    start2, end2 = s2[:, 0], s2[:, 1]
+    # strat2, end2: (1, m)
+    start2, end2 = s2[:, 0][None, :], s2[:, 1][None, :]
 
     # union, intersection: (n, m)
     union = np.maximum(end1, end2) - np.minimum(start1, start2)
@@ -233,11 +232,13 @@ def calculate_jaccard_matrix(s1: np.ndarray, s2: np.ndarray) -> np.ndarray:
 
 
 def jacard_coefficient(s1: Tuple[float, float], s2: Tuple[float, float]) -> float:  # noqa: UP006
+    """deprecated: 遅いから使わない"""
     start1, end1 = s1
     start2, end2 = s2
     union = max(end1, end2) - min(start1, start2)
     intersection = max(min(end1, end2) - max(start1, start2), 0)
     return intersection / union if union != 0 else 0
+
 
 if __name__ == "__main__":
     args = Whisper2CsvArguments().parse_args()
