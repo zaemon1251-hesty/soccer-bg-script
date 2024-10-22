@@ -6,6 +6,7 @@ import os
 import time
 from functools import wraps
 from pathlib import Path
+from tap import Tap
 
 import pandas as pd
 from loguru import logger
@@ -33,6 +34,18 @@ except ModuleNotFoundError:
         random_seed,
         subcategory_name,
     )
+
+
+class CsvUtilsArguments(Tap):
+    type: str
+    input_csv: str = None
+    output_csv: str = None
+    batch_result_dir: str = None
+
+    def configure(self) -> None:
+        self.add_argument("type", type=str, help="type of function to run")
+        self.add_argument("--batch_result_dir", type=str, default=None, help="directory of batch results (jsonl files)")
+
 
 HUMAN_ANOTATION_CSV_PATH = (
     Config.target_base_dir
@@ -240,15 +253,7 @@ def extract_info_from_jsonl(jsonl_path: str):
 
 
 if __name__ == "__main__":
-    from argparse import ArgumentParser
-
-    parser = ArgumentParser()
-
-    parser.add_argument("type", type=str, help="type of function to run")
-    parser.add_argument("--input_csv", type=str, default=None)
-    parser.add_argument("--output_csv", type=str, default=None)
-    parser.add_argument("--batch_result_dir", type=str, default=None, help="directory of batch results (jsonl files)")
-    args = parser.parse_args()
+    args: CsvUtilsArguments = CsvUtilsArguments().parse_args()
 
     if args.type == "create":
         create_tokenized_annotation_csv()
@@ -284,5 +289,21 @@ if __name__ == "__main__":
         output_df = pd.merge(input_df, result_df, left_on="id", right_on="custom_id") # idとcustom_idは一対一対応
         output_df.drop(columns=["custom_id"], inplace=True)
         output_df.to_csv(args.output_csv, index=False)
+    elif args.type == "sample":
+        # trasnlate の評価用にサンプルデータを取得
+        # en,es,de,fr を 40ずつ取得
+        num_samples = 160
+        input_df = pd.read_csv(args.input_csv)
+        sample_comment_ids = []
+        for lang in ["en", "es", "de", "fr"]:
+            sample_num = num_samples // 4
+            sample_comment_ids.extend(
+                input_df[(input_df["language"] == lang) & (input_df["src_text"].notnull())]
+                .sample(n=sample_num, random_state=random_seed)["id"]
+                .tolist()
+            )
+        mask = input_df["id"].isin(sample_comment_ids)
+        sample_df = input_df[mask]
+        sample_df.to_csv(args.output_csv, index=False)
     else:
         raise ValueError(f"Invalid type: {args.type}")
