@@ -99,7 +99,7 @@ def game_to_id(game: str, half: int):
 
 def convert_to_attributes(bbox_clazz):
     clazz_id = FRAME_CLASS_DICTIONARY.get(bbox_clazz)
-    role = None
+    role = "other"
     team = None
     if clazz_id == 0:
         role = "ball"
@@ -151,8 +151,8 @@ def get_gamestate_dict_and_metadatas(
             "game_id": game_id,
             "id": super_id,
             "num_tracklets": "11", # TODO ちゃんと計算する
-            "action_position": None,
-            "action_class": None,
+            "action_position": 0,
+            "action_class": "action",
             "visibility": True,
             "game_time_start": first_action["imageMetadata"]["gameTime"],
             "game_time_stop": last_action["imageMetadata"]["gameTime"],
