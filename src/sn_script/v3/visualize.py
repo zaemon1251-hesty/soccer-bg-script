@@ -2,16 +2,16 @@ import configparser
 import json
 import os
 from argparse import ArgumentParser
+from pathlib import Path
 
 import cv2
 import numpy as np
 import torch
 from PIL import ImageColor
+from sn_script.v3.dataloader import SNV3Dataset
 from SoccerNet.Evaluation.utils import FRAME_CLASS_COLOR_DICTIONARY, INVERSE_FRAME_CLASS_DICTIONARY
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-
-from sn_script.v3.dataloader import SNV3Dataset
 
 
 def torch2cv2(image):
@@ -101,15 +101,54 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Load the dataset
-    soccernet = SNV3Dataset(args.SoccerNet_path, split=args.split, resolution=(args.resolution_width,args.resolution_height), preload_images=False, tiny=args.tiny,zipped_images=args.zipped_images)
-    soccernet_loader = DataLoader(soccernet, batch_size=1, shuffle=False, num_workers=args.num_workers, pin_memory=True)
+    soccernet = SNV3Dataset(
+        args.SoccerNet_path,
+        split=args.split,
+        resolution=(args.resolution_width,args.resolution_height),
+        preload_images=False,
+        tiny=args.tiny,
+        zipped_images=args.zipped_images
+    )
+    soccernet_loader = DataLoader(
+        soccernet,
+        batch_size=1,
+        shuffle=False,
+        num_workers=args.num_workers,
+        pin_memory=True
+    )
+    label_paths = soccernet.metadata
     with tqdm(enumerate(soccernet_loader), total=len(soccernet_loader), ncols=160) as t:
         for i, data in t:
+            game = os.path.dirname(data[0]["zipfilepath"][0]).__str__().replace(args.SoccerNet_path, "")
+            print(f"{game=}")
+            save_path = os.path.join(args.save_path, game)
+            os.makedirs(save_path, exist_ok=True)
             for j, d in enumerate(data):
-                cv2.imwrite(args.save_path + str(i) + "_" + str(j) + "_original.png", torch2cv2(d["image"][0]))
+                cv2.imwrite(
+                    os.path.join(save_path, str(i) + "_" + str(j) + "_original.png"),
+                    torch2cv2(d["image"][0])
+                )
                 img_bbox = draw_bboxes(d["image"],d["bboxes"])
-                cv2.imwrite(args.save_path + str(i) + "_" + str(j) + "_bboxes.png", img_bbox)
+                cv2.imwrite(
+                    os.path.join(save_path, str(i) + "_" + str(j) + "_bboxes.png"),
+                    img_bbox
+                )
                 img_line = draw_lines(d["image"],d["lines"])
-                cv2.imwrite(args.save_path + str(i) + "_" + str(j) + "_lines.png", img_line)
+                cv2.imwrite(
+                    os.path.join(save_path, str(i) + "_" + str(j) + "_lines.png"),
+                    img_line
+                )
             img_links = draw_links(data)
-            cv2.imwrite(args.save_path + str(i) + "_links.png", img_links)
+            cv2.imwrite(
+                os.path.join(save_path, str(i) + "_links.png"),
+                img_links
+            )
+            # ラベルの保存
+            input_label = os.path.join(soccernet.path, game, "Labels-v3.json")
+            output_label = os.path.join(save_path, "Labels-v3.json")
+            if not os.path.exists(output_label):
+                with open(input_label) as f:
+                    labels = json.load(f)
+                with open(output_label, "w") as f:
+                    json.dump(labels, f, indent=2)
+    print("End of visualization")
