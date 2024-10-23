@@ -88,6 +88,70 @@ MASTER_CATRGORIES = [
     }
 ]
 
+class PersonIdentifier:
+    """
+    video ごとに、(role, team, jersey_number) から person_id を返す
+
+    """
+    def __init__(self, v3_data):
+        self.v3_data = v3_data
+        self.cur_person_num = 0
+        self.done_preprocess = False
+        self.preprocess()
+
+    def preprocess(self):
+        assert 'actions' in self.v3_data or 'replays' in self.v3_data
+        assert self.cur_person_num == 0
+        assert not self.done_preprocess
+
+        self.person_inv_dict = {} # key: role, team, jersey_number_or_literal , value: person_id
+        for scene in ['actions', 'replays']:
+            for _, action_data in self.v3_data[scene].items():
+                for bbox in action_data['bboxes']:
+                    jersey_number_or_literal = bbox['ID']
+                    role, team = convert_to_attributes(bbox['class'])
+                    team = normalize_team(team, action_data['imageMetadata']['gameTime'])
+                    # すでに person_id が割り当てられている場合はスキップ
+                    if (role, team, jersey_number_or_literal) in self.person_inv_dict:
+                        continue
+                    # person_id を割り当てる
+                    self.person_inv_dict[role, team, jersey_number_or_literal] = self.get_new_id()
+        self.done_preprocess = True
+
+    def get_new_id(self):
+        self.cur_person_num += 1
+        return self.cur_person_num
+
+    def get_person_id(self, role, team, jersey_number):
+        if not self.done_preprocess:
+            raise RuntimeError("先に preprocess() を実行してください")
+        person_id = self.person_inv_dict.get(
+            (role, team, jersey_number),
+            None
+        )
+        return person_id
+
+
+def normalize_team(team: str, game_time: str):
+    """前半のサイドに統一する
+    person_id 構築時は利用するが、Game State Reconstruction 用の json 作成時は利用しない
+    Args:
+        team (str): "left" or "rigth"
+        game_time (str): "1 - MM:SS"
+    """
+    assert team in ["left", "right", None]
+    assert game_time[0] in ["1", "2"]
+
+    if team is None:
+        return None
+
+    half = int(game_time[0])
+
+    if half == 1:
+        return team
+    else:
+        return "left" if team == "right" else "right"
+
 
 def game_to_id(game: str, half: int):
     """001_1, 002_2, 003_1, ..."""
@@ -98,7 +162,7 @@ def game_to_id(game: str, half: int):
 
 
 def convert_to_attributes(bbox_clazz):
-    clazz_id = FRAME_CLASS_DICTIONARY.get(bbox_clazz)
+    clazz_id = FRAME_CLASS_DICTIONARY.get(bbox_clazz, -1)
     role = "other"
     team = None
     if clazz_id == 0:
@@ -224,7 +288,7 @@ def process_copying_image(
             zipfilepath = os.path.join(game_path, "Frames-v3.zip")
             with zipfile.ZipFile(zipfilepath, 'r') as zippedFrames:  # noqa: N806
                 with zippedFrames.open(image_name) as imginfo:
-                    with open(gamestate_image_path, 'wb') as f:
+                    with open(v3_image_path, 'wb') as f:
                         f.write(imginfo.read())
     except FileExistsError:
         # すでに解凍済み
@@ -247,16 +311,22 @@ def process_annotations(
     image_name: str,
     action_data: dict,
     gamestate_data: dict,
-    super_id: str
+    super_id: str,
+    person_identifier: PersonIdentifier
 ):
     tqdm.write(f"Annotation: {image_name}")
 
     for idx, bbox in enumerate(action_data['bboxes']):
         role, team = convert_to_attributes(bbox['class'])
+        person_id = person_identifier.get_person_id(
+            role,
+            normalize_team(team, action_data['imageMetadata']['gameTime']),
+            bbox['ID']
+        )
         annotation = {
             "id": f"{super_id}-{Path(image_name).stem}-{idx + 1}",
             "image_id": f"{super_id}-{Path(image_name).stem}",
-            "track_id": idx + 1,
+            "track_id": person_id,
             "supercategory": "object", # 物体を表す識別子
             "category_id": 1,  # 人物のカテゴリID
             "attributes": {
@@ -287,7 +357,8 @@ def process_scene(
     game_path: str,
     gamestate_base_dir: str,
     split: str,
-    super_id: str
+    super_id: str,
+    person_identifier: PersonIdentifier,
 ):
     tqdm.write(f"scene: {scene}")
     for image_name, action_data in tqdm(v3_data[scene].items()):
@@ -298,7 +369,13 @@ def process_scene(
         # 画像をコピー
         process_copying_image(image_name, action_data, gamestate_data, game_path, gamestate_base_dir, split)
         # アノテーションを追加
-        process_annotations(image_name, action_data, gamestate_data, super_id)
+        process_annotations(
+            image_name,
+            action_data,
+            gamestate_data,
+            super_id,
+            person_identifier=person_identifier
+        )
     tqdm.write(f"End scene: {scene}")
 
 
@@ -321,7 +398,7 @@ def convert_to_gamestate(game_path, gamestate_base_dir, resol720p=False):
         v3_data,
         resol720p
     )
-
+    person_identifier = PersonIdentifier(v3_data)
     for scene in tqdm(['actions', 'replays']):
         # シーンごとに処理
         process_scene(
@@ -331,7 +408,8 @@ def convert_to_gamestate(game_path, gamestate_base_dir, resol720p=False):
             game_path,
             gamestate_base_dir,
             split,
-            super_id
+            super_id,
+            person_identifier=person_identifier
         )
 
     # 書き出し
