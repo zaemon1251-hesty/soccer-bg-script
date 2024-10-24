@@ -206,7 +206,7 @@ if __name__ == "__main__":
     soccernet = SNV3Dataset(args.SoccerNet_path, split=args.split, resolution=(args.resolution_width,args.resolution_height), preload_images=args.preload_images, zipped_images=args.zipped_images, tiny=args.tiny)
     soccernet_loader = DataLoader(soccernet, batch_size=1, shuffle=False, num_workers=args.num_workers, pin_memory=True)
     with tqdm(enumerate(soccernet_loader), total=len(soccernet_loader), ncols=160) as t:
-        for i, data in t:
+        for _, _ in t:
             continue
     end_time = time.time()
     print(end_time-start_time)

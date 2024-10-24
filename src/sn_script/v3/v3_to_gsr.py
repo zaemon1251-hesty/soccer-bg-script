@@ -205,6 +205,7 @@ def get_gamestate_dict_and_metadatas(
     split = first_action["imageMetadata"]["set"]
     half = first_action["imageMetadata"]["half"]
 
+    # super_id -> ビデオごとに一意のID
     super_id = game_to_id(metadata["UrlLocal"], half)
     game_id = v3_data["actions"][list_actions[0]]["imageMetadata"]["gameID"]
 
@@ -323,6 +324,13 @@ def process_annotations(
             normalize_team(team, action_data['imageMetadata']['gameTime']),
             bbox['ID']
         )
+        # 720p に対応するため、bboxの座標を変換
+        # tmp_data[0] = bbox["points"]["x1"]/image_metadata["width"]
+        # tmp_data[1] = bbox["points"]["y1"]/image_metadata["height"]
+        # tmp_data[2] = abs(bbox["points"]["x2"]-bbox["points"]["x1"])/image_metadata["width"]
+        # tmp_data[3] = abs(bbox["points"]["y2"]-bbox["points"]["y1"])/image_metadata["height"]
+        # tmp_data[4] = float(FRAME_CLASS_DICTIONARY[bbox["class"]])
+
         annotation = {
             "id": f"{super_id}-{Path(image_name).stem}-{idx + 1}",
             "image_id": f"{super_id}-{Path(image_name).stem}",
