@@ -6,10 +6,10 @@ import os
 import time
 from functools import wraps
 from pathlib import Path
-from tap import Tap
 
 import pandas as pd
 from loguru import logger
+from tap import Tap
 
 try:
     from sn_script.config import (
@@ -45,36 +45,6 @@ class CsvUtilsArguments(Tap):
     def configure(self) -> None:
         self.add_argument("type", type=str, help="type of function to run")
         self.add_argument("--batch_result_dir", type=str, default=None, help="directory of batch results (jsonl files)")
-
-
-HUMAN_ANOTATION_CSV_PATH = (
-    Config.target_base_dir
-    / f"{random_seed}_{half_number}_moriy_annotation_preprocessed.csv"
-)
-
-ALL_CSV_PATH = Config.target_base_dir / f"denoised_{half_number}_tokenized_224p_all.csv"
-# ALL_CSV_PATH = (
-#     Config.target_base_dir / f"500_denoised_{half_number}_tokenized_224p_all.csv"
-# )
-
-DENISED_TOKENIZED_CSV_TEMPLATE = f"denoised_{half_number}_tokenized_224p.csv"
-
-ANNOTATION_CSV_PATH = (
-    Config.target_base_dir
-    / f"{random_seed}_denoised_{half_number}_tokenized_224p_annotation.csv"
-)
-
-# LLM_ANOTATION_CSV_PATH = (
-#     Config.base_dir / f"{model_type}_{random_seed}_{half_number}_llm_annotation.csv"
-# )
-
-LLM_ANOTATION_CSV_PATH = (
-    Config.target_base_dir / f"{model_type}_500game_{half_number}_llm_annotation.csv"
-)
-
-LLM_ANNOTATION_JSONL_PATH = (
-    Config.target_base_dir / f"{model_type}_500game_{half_number}_llm_annotation.jsonl"
-)  # ストリームで保存するためのjsonlファイル
 
 
 def write_csv(data: dict | list, output_csv_path: str | Path):
@@ -121,9 +91,7 @@ def write_csv(data: dict | list, output_csv_path: str | Path):
     logger.info(f"CSVファイルが生成されました。:{output_csv_path}")
 
 
-def dump_filled_comments(half_number: int):
-    DUMP_FILE_PATH = f"filled_big_class_{half_number}.csv"
-
+def dump_filled_comments(dump_file_path: str, half_number: int):
     df_list = []
     for target in Config.targets:
         target: str = target.rstrip("/").split("/")[-1]
@@ -136,23 +104,19 @@ def dump_filled_comments(half_number: int):
     filled_big_class_df = all_game_df.loc[
         ~all_game_df[category_name].isnull()
     ].reset_index(drop=True)
-    filled_big_class_df.to_csv(DUMP_FILE_PATH, index=False)
+    filled_big_class_df.to_csv(dump_file_path, index=False)
 
 
-def clean():
-    half_number = 1
-    DUMP_FILE_PATH = f"filled_big_class_{half_number}.csv"
-    df = pd.read_csv(DUMP_FILE_PATH)
+def clean(dump_file_path: str):
+    df = pd.read_csv(dump_file_path)
     print(df.columns)
     df.drop(columns=["Unnamed: 6", "Unnamed: 7"], inplace=True)
-    df.to_csv(DUMP_FILE_PATH, index=False)
+    df.to_csv(dump_file_path, index=False)
 
 
-def add_column_to_csv():
-    # all_game_df = pd.read_csv(ALL_CSV_PATH)
-    annotation_df = pd.read_csv(ANNOTATION_CSV_PATH)
+def add_column_to_csv(annotation_csv_path: str):
+    annotation_df = pd.read_csv(annotation_csv_path)
 
-    # all_game_df[binary_category_name] = pd.NA
     annotation_df[binary_category_name] = pd.NA
     column_order = [
         "id",
@@ -165,17 +129,15 @@ def add_column_to_csv():
         subcategory_name,
         "備考",
     ]
-    # all_game_df = all_game_df.reindex(columns=column_order)
     annotation_df = annotation_df.reindex(columns=column_order)
-    # all_game_df.to_csv(ALL_CSV_PATH, index=False, encoding="utf-8_sig")
-    annotation_df.to_csv(ANNOTATION_CSV_PATH, index=False, encoding="utf-8_sig")
+    annotation_df.to_csv(annotation_csv_path, index=False, encoding="utf-8_sig")
 
 
-def create_tokenized_annotation_csv(number_of_comments: int = 100):
-    all_game_df = pd.read_csv(ALL_CSV_PATH)
+def create_tokenized_annotation_csv(all_csv_path: str, annotation_csv_path: str, number_of_comments: int = 100):
+    all_game_df = pd.read_csv(all_csv_path)
 
     annotation_df = all_game_df.sample(n=number_of_comments, random_state=random_seed)
-    annotation_df.to_csv(ANNOTATION_CSV_PATH, index=False, encoding="utf-8_sig")
+    annotation_df.to_csv(annotation_csv_path, index=False, encoding="utf-8_sig")
 
 
 def stop_watch(func):
@@ -200,12 +162,15 @@ def gametime_to_seconds(gametime):
     return int(m) * 60 + int(s)
 
 
-def fill_csv_from_json():
-    annotation_df = pd.read_csv(LLM_ANOTATION_CSV_PATH)
+def fill_csv_from_json(
+    llm_annotation_csv_path: str,
+    llm_annotation_jsonl_path: str
+):
+    annotation_df = pd.read_csv(llm_annotation_csv_path)
     annotation_df[binary_category_name] = pd.NA
     annotation_df["備考"] = pd.NA
 
-    with open(LLM_ANNOTATION_JSONL_PATH) as f:
+    with open(llm_annotation_jsonl_path) as f:
         for line in f:
             result: dict = json.loads(line)
             comment_id = result.get("comment_id")
@@ -215,10 +180,14 @@ def fill_csv_from_json():
                 annotation_df["id"] == comment_id, binary_category_name
             ] = category
             annotation_df.loc[annotation_df["id"] == comment_id, "備考"] = reason
-    annotation_df.to_csv(LLM_ANOTATION_CSV_PATH, index=False, encoding="utf-8_sig")
+    annotation_df.to_csv(llm_annotation_csv_path, index=False, encoding="utf-8_sig")
 
 
-def split_dataset_csv(subcategory_annotated_csv_path, val_csv_path, fewshot_csv_path):
+def split_dataset_csv(
+    subcategory_annotated_csv_path,
+    val_csv_path,
+    fewshot_csv_path
+):
     df = pd.read_csv(subcategory_annotated_csv_path)
     # split samples into fewshot : val = 20 : 50 from 70 samples
     fewshot_df = df.sample(n=20, random_state=random_seed)
@@ -231,6 +200,7 @@ def split_dataset_csv(subcategory_annotated_csv_path, val_csv_path, fewshot_csv_
         val_csv_path,
         index=False,
     )
+
 
 def extract_info_from_jsonl(jsonl_path: str):
     informations = []
@@ -256,11 +226,11 @@ if __name__ == "__main__":
     args: CsvUtilsArguments = CsvUtilsArguments().parse_args()
 
     if args.type == "create":
-        create_tokenized_annotation_csv()
+        create_tokenized_annotation_csv(args.input_csv, args.output_csv)
     elif args.type == "add":
-        add_column_to_csv()
+        add_column_to_csv(args.input_csv)
     elif args.type == "dump":
-        fill_csv_from_json()
+        fill_csv_from_json(args.input_csv, args.output_csv)
     elif args.type == "split":
         subcategory_annotated_csv_path = Config.target_base_dir / f"{half_number}_{random_seed}_subcategory_annotation.csv"
         val_csv_path = Config.target_base_dir / f"{half_number}_{random_seed}_fewshot_subcategory_annotation.csv"

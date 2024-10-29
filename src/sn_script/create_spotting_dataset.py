@@ -1,12 +1,20 @@
 """
+@deprecated(scbi-v2のような、0.0n秒のといった精度の高いタイムスタンプを持つデータセットに対しては、この関数は使えない)
+
 要約
-- SCBI (Soccer Commentary Background Information) の dataset splitを行う
+- SCBI-v1 (Soccer Commentary Background Information) の dataset splitを行う
+- sn-caption のベースラインの入出力に合わせる。
+    - 必要なカラム: frame_id, target_labe (1-indexed)
 入出力
 - csv to csv
 """
 from __future__ import annotations
 
+import warnings
+from pathlib import Path
+
 import pandas as pd
+from tap import Tap
 
 try:
     from SoccerNet.Downloader import getListGames
@@ -14,25 +22,18 @@ try:
     from sn_script.config import (
         Config,
         binary_category_name,
-        half_number,
-        model_type,
-        random_seed,
-        # category_name,
-        subcategory_name,
     )
     from sn_script.csv_utils import gametime_to_seconds
 except ModuleNotFoundError:
     import sys
 
     sys.path.append(".")
-    from src.sn_script.config import (
-        Config,
-        half_number,
-        model_type,
-    )
+    from src.sn_script.config import Config, binary_category_name
 
-
-LLM_ANOTATION_CSV_PATH = Config.target_base_dir / f"{model_type}_500game_{half_number}_llm_annotation.csv"
+class CreateDatasetArguments(Tap):
+    version: str = "v1"
+    stable_csv: str
+    output_dir: str
 
 
 def split_gamelist(gamelist: list[str]) -> dict[str, list[str]]:
@@ -55,9 +56,30 @@ def split_gamelist(gamelist: list[str]) -> dict[str, list[str]]:
                 gamelist_dict[split].append(game)
                 break
         else:
-            raise ValueError(f"Game {game} is not in any split")
+            warnings
+            gamelist_dict["train"].append(game)
 
     return gamelist_dict
+
+
+def get_game_split_map() -> dict[str, str]:
+    game_split_map: dict[str, str] = {}
+    for split, gamelist in split_gamelist(Config.targets).items():
+        for game in gamelist:
+            game_split_map[game] = split
+    return game_split_map
+
+
+def map_category_id(label):
+    if isinstance(label, str) and label.isdigit():
+        label = int(label)
+    if isinstance(label, float) and label.is_integer():
+        label = int(label)
+    mapping = {
+        0: 1, # 映像の説明
+        1: 2  # 付加的情報を含むコメント
+    }
+    return mapping.get(label, None)
 
 
 def preprocess_dataframe(commentary_df: pd.DataFrame) -> pd.DataFrame:
@@ -66,21 +88,7 @@ def preprocess_dataframe(commentary_df: pd.DataFrame) -> pd.DataFrame:
     assert binary_category_name in commentary_df.columns, f"{binary_category_name} column is required"
 
     # ゲームがどのデータセットに含まれるか
-    game_split_map: dict[str, str] = {}
-    for split, gamelist in split_gamelist(Config.targets).items():
-        for game in gamelist:
-            game_split_map[game] = split
-
-    def map_category_id(label):
-        if isinstance(label, str) and label.isdigit():
-            label = int(label)
-        if isinstance(label, float) and label.is_integer():
-            label = int(label)
-        mapping = {
-            0: 1, # 映像の説明
-            1: 2  # 付加的情報を含むコメント
-        }
-        return mapping.get(label, None)
+    game_split_map = get_game_split_map()
 
     commentary_df["split"] = commentary_df["game"].map(game_split_map).dropna()
     try:
@@ -97,9 +105,17 @@ def preprocess_dataframe(commentary_df: pd.DataFrame) -> pd.DataFrame:
     return commentary_df
 
 
+def preprocess_dataframe_v2(commentary_df: pd.DataFrame) -> pd.DataFrame:
+    assert set(commentary_df.columns) >= {"game", "half", "start", "end", "text", binary_category_name}
+    game_split_map = get_game_split_map()
+    commentary_df["split"] = commentary_df["game"].map(game_split_map).dropna()
+    # とりあえず、target_labelだけ統一しておく
+    commentary_df["target_label"] = commentary_df[binary_category_name].apply(map_category_id).dropna().astype("int32")
+    return commentary_df
+
+
 def split_df_train_valid_test(commentary_df: pd.DataFrame):
     assert "split" in commentary_df.columns, "start column is required"
-    assert "target_frameid" in commentary_df.columns, "target_frameid column is required"
     assert "target_label" in commentary_df.columns, "target_label column is required"
 
     train_df = commentary_df[commentary_df["split"] == "train"]
@@ -110,15 +126,26 @@ def split_df_train_valid_test(commentary_df: pd.DataFrame):
 
     return train_df, valid_df, test_df
 
-def main():
-    commentary_df = pd.read_csv(LLM_ANOTATION_CSV_PATH)
-    commentary_df = preprocess_dataframe(commentary_df)
+def main(args: CreateDatasetArguments):
+    commentary_df = pd.read_csv(args.stable_csv)
+    if args.version == "v1":
+        commentary_df = preprocess_dataframe(commentary_df)
+    elif args.version == "v2":
+        commentary_df = preprocess_dataframe_v2(commentary_df)
+
     train_df, valid_df, test_df = split_df_train_valid_test(commentary_df)
 
-    train_df.to_csv(Config.target_base_dir.parent / "dataset" / f"{model_type}_500game_{half_number}_llm_annotation_train.csv", index=False)
-    valid_df.to_csv(Config.target_base_dir.parent / "dataset" / f"{model_type}_500game_{half_number}_llm_annotation_valid.csv", index=False)
-    test_df.to_csv(Config.target_base_dir.parent / "dataset" / f"{model_type}_500game_{half_number}_llm_annotation_test.csv", index=False)
+    print("statistics:")
+    print(f"{len(train_df)} train samples")
+    print(f"{len(valid_df)} valid samples")
+    print(f"{len(test_df)} test samples")
+
+    Path(args.output_dir).mkdir(exist_ok=True, parents=True)
+    train_df.to_csv(Path(args.output_dir) / "train.csv", index=False)
+    valid_df.to_csv(Path(args.output_dir) / "valid.csv", index=False)
+    test_df.to_csv(Path(args.output_dir) / "test.csv", index=False)
 
 
 if __name__ == "__main__":
-    main()
+    args = CreateDatasetArguments().parse_args()
+    main(args)
