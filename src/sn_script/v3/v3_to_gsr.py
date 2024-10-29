@@ -7,6 +7,8 @@ import zipfile
 from pathlib import Path
 from typing import List  # noqa: UP035
 
+import cv2
+import torchvision
 from SoccerNet.Downloader import getListGames
 from SoccerNet.Evaluation.utils import FRAME_CLASS_DICTIONARY
 from tap import Tap
@@ -16,6 +18,7 @@ from tqdm import tqdm
 class V3Json2GsrArguments(Tap):
     SoccerNet_path: str
     output_base_path: str
+    resol720p: bool = False
 
 
 GAMES: List[str] = getListGames("all")  # noqa: UP006
@@ -224,7 +227,7 @@ def get_gamestate_dict_and_metadatas(
             "clip_start": first_action["imageMetadata"]["position"],
             "clip_stop": last_action["imageMetadata"]["position"],
             "name": f"SNGS-{super_id}",
-            "im_dir": "img1" if not resol720p else "img720",
+            "im_dir": "img1",
             "frame_rate": 5, # TODO ちゃんと計算する
             "seq_length": len(list_actions) + len(list_replays),
             "im_ext": ".png"
@@ -302,10 +305,8 @@ def process_copying_image(
 
     # コピー
     if not os.path.exists(gamestate_image_path):
-        tqdm.write(f"Image copying: {v3_image_path=}")
-        with open(v3_image_path, 'rb') as f:
-            with open(gamestate_image_path, 'wb') as g:
-                g.write(f.read())
+        resized_img = resize_func(torchvision.io.read_image(v3_image_path))
+        torchvision.io.write_png(resized_img, gamestate_image_path)
 
 
 def process_annotations(
@@ -313,10 +314,12 @@ def process_annotations(
     action_data: dict,
     gamestate_data: dict,
     super_id: str,
-    person_identifier: PersonIdentifier
+    person_identifier: PersonIdentifier,
+    resol720p: bool = False
 ):
     tqdm.write(f"Annotation: {image_name}")
 
+    # TODO lines も今後追加する
     for idx, bbox in enumerate(action_data['bboxes']):
         role, team = convert_to_attributes(bbox['class'])
         person_id = person_identifier.get_person_id(
@@ -329,7 +332,12 @@ def process_annotations(
         # tmp_data[1] = bbox["points"]["y1"]/image_metadata["height"]
         # tmp_data[2] = abs(bbox["points"]["x2"]-bbox["points"]["x1"])/image_metadata["width"]
         # tmp_data[3] = abs(bbox["points"]["y2"]-bbox["points"]["y1"])/image_metadata["height"]
-        # tmp_data[4] = float(FRAME_CLASS_DICTIONARY[bbox["class"]])
+        if resol720p:
+            # 1080p -> 720p
+            bbox["points"]["x1"] = bbox["points"]["x1"] * 1280 / 1920
+            bbox["points"]["x2"] = bbox["points"]["x2"] * 1280 / 1920
+            bbox["points"]["y1"] = bbox["points"]["y1"] * 720 / 1080
+            bbox["points"]["y2"] = bbox["points"]["y2"] * 720 / 1080
 
         annotation = {
             "id": f"{super_id}-{Path(image_name).stem}-{idx + 1}",
@@ -367,6 +375,7 @@ def process_scene(
     split: str,
     super_id: str,
     person_identifier: PersonIdentifier,
+    resol720p: bool = False
 ):
     tqdm.write(f"scene: {scene}")
     for image_name, action_data in tqdm(v3_data[scene].items()):
@@ -382,7 +391,8 @@ def process_scene(
             action_data,
             gamestate_data,
             super_id,
-            person_identifier=person_identifier
+            person_identifier=person_identifier,
+            resol720p=resol720p
         )
     tqdm.write(f"End scene: {scene}")
 
@@ -417,7 +427,8 @@ def convert_to_gamestate(game_path, gamestate_base_dir, resol720p=False):
             gamestate_base_dir,
             split,
             super_id,
-            person_identifier=person_identifier
+            person_identifier=person_identifier,
+            resol720p=resol720p
         )
 
     # 書き出し
@@ -432,6 +443,9 @@ if __name__ == "__main__":
     # Example usage
     games = getListGames("all", task="frames")
 
+    resolution = (1280, 720) if args.resol720p else (1920, 1080)
+    resize_func = torchvision.transforms.Resize((resolution[1],resolution[0]), antialias=True)
+
     for game in tqdm(games):
         game_path = os.path.join(args.SoccerNet_path, game)
-        convert_to_gamestate(game_path, args.output_base_path)
+        convert_to_gamestate(game_path, args.output_base_path, args.resol720p)

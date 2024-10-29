@@ -162,7 +162,7 @@ def main(args: CheckGsrJsonArguments):
             continue
 
         info_data = gamestate_data['info']
-        # v3 なら、super_id == video_id
+        # v3 なら、 super_id == video_id
         video_id = info_data.get("id", str(video_folder.split('-')[-1]))
 
         annotations_data = gamestate_data['annotations']
