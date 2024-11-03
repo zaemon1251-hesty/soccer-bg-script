@@ -160,7 +160,7 @@ def game_to_id(game: str, half: int):
     """001_1, 002_2, 003_1, ..."""
     assert game in GAMES, "invalid game"
     game_index = GAMES.index(game)
-    video_id = f"{game_index:03d}_{half}"
+    video_id = f"{game_index:03d}"
     return video_id
 
 
@@ -438,6 +438,28 @@ def convert_to_gamestate(game_path, gamestate_base_dir, resol720p=False):
 
     tqdm.write(f"End game: {game_id}")
 
+
+def load_and_save_other_to_team_gsr(gsr_path):
+    """
+    GSRデータのteamがNoneの場合、otherに変更する
+    """
+    with open(gsr_path) as f:
+        gsr_data = json.load(f)
+    gsr_data = fill_other_to_team_gsr(gsr_data)
+    with open(gsr_path, 'w') as f:
+        json.dump(gsr_data, f, indent=4)
+
+
+def fill_other_to_team_gsr(gsr_data):
+    """
+    GSRデータのteamがNoneの場合、otherに変更する
+    """
+    for annotation in gsr_data["annotations"]:
+        if annotation["attributes"]["team"] is None:
+            annotation["attributes"]["team"] = "other"
+    return gsr_data
+
+
 if __name__ == "__main__":
     args = V3Json2GsrArguments().parse_args()
     # Example usage
@@ -449,3 +471,6 @@ if __name__ == "__main__":
     for game in tqdm(games):
         game_path = os.path.join(args.SoccerNet_path, game)
         convert_to_gamestate(game_path, args.output_base_path, args.resol720p)
+    # from glob import glob
+    # for gsr_path in glob(os.path.join(args.output_base_path, "*", "*", "Labels-GameState.json")):
+    #     load_and_save_other_to_team_gsr(gsr_path)

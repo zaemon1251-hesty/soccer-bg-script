@@ -204,7 +204,29 @@ def main(args: CheckGsrJsonArguments):
     player_video_id_null_cnt = all_detections_df.loc[all_detections_df['role'].isin(['player', "goalkeeper", "referee"]), 'video_id'].isnull().sum()
     print("player, goalkeeper, referee の video_id は null であってはならない:", f"null あり ({player_video_id_null_cnt}件)" if player_video_id_null_cnt > 0 else "null なし")
 
-
+    # selected_game = random.sample(game_list, 1)[0]
+    # ################### from left side ############################
+    # avai_pids = copy.deepcopy([i for i in batch_games_dic[selected_game]['left'].keys()])
+    # selected_pids = random.sample(avai_pids, 3)
+    # ################### from right side ###########################
+    # avai_pids = copy.deepcopy([i for i in batch_games_dic[selected_game]['right'].keys()])
+    # selected_pids += random.sample(avai_pids, 3)
+    # ################## from other roles ###########################
+    # avai_pids = copy.deepcopy([i for i in batch_games_dic[selected_game]['other'].keys()])
+    # selected_pids += random.sample(avai_pids, 2)
+    # 上のような処理があるので、 各gameは、 left 3人, right 3人, other 2人 がいないといけない
+    # そのような条件を満たさないgameがあるかどうかチェック
+    video_grouped = all_detections_df.groupby('video_id')
+    for game, video_df in video_grouped:
+        player_df = video_df.loc[video_df['role'].isin(['player', "goalkeeper", "referee"])]
+        right_num = (player_df["team"] == "right").sum()
+        left_num = (player_df["team"] == "left").sum()
+        other_num = (player_df["team"] == "other").sum()
+        if right_num < 3 or left_num < 3 or other_num < 2:
+            print(f"game {game} は、 left 3人, right 3人, other 2人 がいない")
+            print(f"left: {left_num}, right: {right_num}, other: {other_num}")
+            # 176_1 が、 left 3人, right 3人, other 2人 がいない
+            # 関係ないが、012_1は 映像が使えないから除外した
 if __name__ == "__main__":
     args = CheckGsrJsonArguments().parse_args()
     main(args)
