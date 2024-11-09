@@ -7,7 +7,6 @@ import zipfile
 from pathlib import Path
 from typing import List  # noqa: UP035
 
-import cv2
 import torchvision
 from SoccerNet.Downloader import getListGames
 from SoccerNet.Evaluation.utils import FRAME_CLASS_DICTIONARY
@@ -271,7 +270,6 @@ def get_image_dict(
 
 def process_copying_image(
     image_name: str,
-    action_data: dict,
     gamestate_data: dict,
     game_path: str,
     gamestate_base_dir: str,
@@ -328,10 +326,6 @@ def process_annotations(
             bbox['ID']
         )
         # 720p に対応するため、bboxの座標を変換
-        # tmp_data[0] = bbox["points"]["x1"]/image_metadata["width"]
-        # tmp_data[1] = bbox["points"]["y1"]/image_metadata["height"]
-        # tmp_data[2] = abs(bbox["points"]["x2"]-bbox["points"]["x1"])/image_metadata["width"]
-        # tmp_data[3] = abs(bbox["points"]["y2"]-bbox["points"]["y1"])/image_metadata["height"]
         if resol720p:
             # 1080p -> 720p
             bbox["points"]["x1"] = bbox["points"]["x1"] * 1280 / 1920
@@ -384,7 +378,13 @@ def process_scene(
         image_info = get_image_dict(image_name, action_data, super_id)
         gamestate_data['images'].append(image_info)
         # 画像をコピー
-        process_copying_image(image_name, action_data, gamestate_data, game_path, gamestate_base_dir, split)
+        process_copying_image(
+            image_name,
+            gamestate_data,
+            game_path,
+            gamestate_base_dir,
+            split
+        )
         # アノテーションを追加
         process_annotations(
             image_name,

@@ -7,6 +7,6 @@
 
 uv run python src/sn_script/spotting/generate_hf_dataset.py \
     --csv_dir Benchmarks/TemporallyAwarePooling/data/ \
-    --hf_dataset_dir database/hf_dataset/ \
+    --hf_dataset_dir database/hf_dataset \
     --push \
     --dataset_name zaemon/scbi

@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from datasets import ClassLabel, Features, Value, load_dataset
+from datasets import ClassLabel, DatasetDict, Features, Value, load_dataset
 from sn_script.config import binary_category_name
 from tap import Tap
 
@@ -40,6 +40,14 @@ def main(args: GenerateHfDatasetArguments):
     dataset.save_to_disk(args.hf_dataset_dir)
 
 
+def describe_generated_hf_dataset(args: GenerateHfDatasetArguments):
+    scbi_hf: DatasetDict = load_dataset(args.dataset_name)
+    print(scbi_hf)
+    # データのサイズなどを表示
+    print(f"{scbi_hf['train'].num_rows=}")
+    print(f"{scbi_hf['validation'].num_rows=}")
+    print(f"{scbi_hf['test'].num_rows=}")
+
 if __name__ == "__main__":
     args = GenerateHfDatasetArguments().parse_args()
-    main(args)
+    describe_generated_hf_dataset(args)
