@@ -22,7 +22,14 @@ side_team_map = {
         "left": "West Ham",
         "right": "Liverpool",
     },
-
+    ("england_epl/2016-2017/2016-09-24 - 14-30 Manchester United 4 - 1 Leicester", 1): {
+        "left": "Manchester United",
+        "right": "Leicester",
+    },
+    ("england_epl/2016-2017/2016-09-24 - 14-30 Manchester United 4 - 1 Leicester", 2): {
+        "left": "Leicester",
+        "right": "Manchester United",
+    },
 }
 
 time_str = datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -30,7 +37,7 @@ logger.add(f"logs/{time_str}.log")
 
 v3_basename = "Labels-v3.json"
 
-game_list = getListGames("all")
+game_list = getListGames("all", task="frames")
 
 
 class ConvertToPlayersArguments(Tap):
@@ -39,48 +46,67 @@ class ConvertToPlayersArguments(Tap):
     output_csv_path: str
 
 
-def _convert_bboxes(bboxes_data, player_df, list_of_dicts, game, half, time):
+def _convert_bboxes(
+    bboxes_data: list[dict],
+    player_df: pd.DataFrame,
+    list_of_dicts: list[dict],
+    game: str,
+    half: int,
+    time: int
+):
+    # debug
+    if game == "england_epl/2016-2017/2016-09-24 - 14-30 Manchester United 4 - 1 Leicester":
+        team_dict = side_team_map.get((game, int(half)))
+        print(f"{team_dict=}")
+        print((game, half))
+
+    any_role_valid_flag = False
     for bbox in bboxes_data:
         role, team = convert_to_attributes(bbox['class'])
-        if role not in ["player", "goalkeeper"]:
+        if role in ["player", "goalkeeper"]:
+            any_role_valid_flag = True
+            pass
+        else:
             continue
 
         jersey_number = bbox["ID"]
         if jersey_number is not None and jersey_number.isnumeric():
             jersey_number = int(jersey_number)
         else:
+            #print(f"jersey_number is None: {game=}, {half=}, {time=}, {team=}, {jersey_number=}")
             continue
-
-        # debug
-        if (game, half) == ("england_epl/2015-2016/2015-08-16 - 18-00 Manchester City 3 - 0 Chelsea", "1"):
-            print(f"{role=}, {team=}, {jersey_number=}")
-            team_name = side_team_map.get((game, half))[team]
-            print(f"{team_name=}")
 
         side_team = side_team_map.get((game, half))
-        if side_team is None:
+        if side_team is not None:
+            team = side_team[team]
+        else:
+            #print(f"side_team is None: {game=}, {half=}, {time=}, {team=}, {jersey_number=}")
             continue
-        team = side_team[team]
 
+        player_df["shirt_number"] = player_df["shirt_number"].astype(int)
         player_row = player_df[
             (player_df["game"] == game) &
             (player_df["team"] == team) &
-            (player_df["jersey_number"] == jersey_number)
+            (player_df["shirt_number"] == jersey_number)
         ]
-        if player_row.empty:
+        if not player_row.empty:
+            player_data = {
+                "game": game,
+                "half": half,
+                "time": time,
+                "team": team,
+                "name": player_row["name"],
+                "short_name": player_row["short_name"],
+                "country": player_row["country"],
+                "points": bbox["points"],
+            }
+            list_of_dicts.append(player_data)
+        else:
+            print(f"player_row not found: {game=}, {half=}, {time=}, {team=}, {jersey_number=}")
             continue
-
-        player_data = {
-            "game": game,
-            "half": half,
-            "time": time,
-            "team": team,
-            "name": player_row["name"],
-            "short_name": player_row["short_name"],
-            "country": player_row["country"],
-            "points": bbox["points"],
-        }
-        list_of_dicts.append(player_data)
+    if not any_role_valid_flag:
+        # print(f"any_role_valid_flag is False: {game=}, {half=}, {time=}")
+        pass
 
 
 def convert(v3_data, player_df, output_path):
@@ -91,6 +117,7 @@ def convert(v3_data, player_df, output_path):
             bboxes_data = action_data["bboxes"]
             game = image_metadata["localpath"]
             half, time_str = image_metadata["gameTime"].split(" - ")
+            half = int(half)
             time = gametime_to_seconds(time_str)
             _convert_bboxes(bboxes_data, player_df, list_of_dicts, game, half, time)
 
@@ -99,17 +126,21 @@ def convert(v3_data, player_df, output_path):
 
 
 def convert_to_players(args: ConvertToPlayersArguments):
-
     player_df = pd.read_csv(args.input_player_master_csv)
-
+    false_count = 0
     for game in tqdm(game_list):
+        if not any(game == k[0] for k in side_team_map.keys()):
+            continue
         game_path = os.path.join(args.input_v3_dir, game, v3_basename)
         if not os.path.exists(game_path):
+            false_count += 1
             continue
         game_data = json.load(open(game_path))
-
         convert(game_data, player_df, args.output_csv_path)
-
+    print(
+        f"total: {len(game_list)}\n"
+        f"not found: {false_count}"
+    )
 
 
 if __name__ == "__main__":
