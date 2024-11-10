@@ -90,6 +90,8 @@ def _convert_bboxes(
             (player_df["shirt_number"] == jersey_number)
         ]
         if not player_row.empty:
+            player_row = player_row.iloc[0]
+            x1, y1, x2, y2 = bbox["points"].values()
             player_data = {
                 "game": game,
                 "half": half,
@@ -98,7 +100,10 @@ def _convert_bboxes(
                 "name": player_row["name"],
                 "short_name": player_row["short_name"],
                 "country": player_row["country"],
-                "points": bbox["points"],
+                "x1": x1,
+                "y1": y1,
+                "x2": x2,
+                "y2": y2,
             }
             list_of_dicts.append(player_data)
         else:
