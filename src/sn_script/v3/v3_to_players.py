@@ -99,6 +99,7 @@ def _convert_bboxes(
                 "team": team,
                 "name": player_row["name"],
                 "short_name": player_row["short_name"],
+                "jersey_number": jersey_number,
                 "country": player_row["country"],
                 "x1": x1,
                 "y1": y1,
