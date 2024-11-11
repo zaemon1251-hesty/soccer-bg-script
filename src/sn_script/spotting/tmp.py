@@ -16,6 +16,6 @@ local_games = [
 v3_games = getListGames("all", task="frames")
 
 intersection = set(local_games) & set(v3_games)
-for game in intersection:
-    if "england_epl" in game:
-        print(game)
+print(f"{len(local_games)=}")
+print(f"{len(v3_games)=}")
+print(f"{len(intersection)=}")

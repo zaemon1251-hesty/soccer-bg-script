@@ -6,8 +6,10 @@
 """
 import json
 from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
+from tap import Tap
 
 try:
     from sn_script.config import (
@@ -27,15 +29,18 @@ except ModuleNotFoundError:
         Config,
     )
 
+class CurateSncaptionPlayersArguments(Tap):
+    SoccerNet_path: str
+    output_csv: str = str(Config.target_base_dir / "sncaption_players.csv")
 
-PLAYERS_CSV_PATH = Config.target_base_dir / "sncaption_players.csv"
+args = CurateSncaptionPlayersArguments().parse_args()
 
 # プレイヤー情報を含むテーブルを作成
 players_data = []
 
 
 for target in Config.targets:
-    json_path = Config.base_dir / target / "Labels-caption.json"
+    json_path = Path(args.SoccerNet_path) / target / "Labels-caption.json"
 
     # JSONファイルを読み込む
     with open(json_path, encoding="utf-8") as file:
@@ -51,7 +56,7 @@ for target in Config.targets:
 
     # homeとawayそれぞれのプレイヤーを処理
     for side in ["home", "away"]:
-        team_name = teams[0] if side == "home" else teams[1]
+        team_name = data["gameHomeTeam"] if side == "home" else data["gameAwayTeam"] #  ホームのチームが先頭というわけではない
         for player in data["lineup"][side]["players"]:
             player_info = {
                 "game": game,
@@ -67,4 +72,4 @@ for target in Config.targets:
 
 # write csv
 players_df = pd.DataFrame(players_data)
-players_df.to_csv(PLAYERS_CSV_PATH)
+players_df.to_csv(args.output_csv, index=False)
