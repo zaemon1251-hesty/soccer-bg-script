@@ -5,7 +5,7 @@ import json
 import os
 import zipfile
 from pathlib import Path
-from typing import List  # noqa: UP035
+from typing import List, Union  # noqa: UP035
 
 import torchvision
 from SoccerNet.Downloader import getListGames
@@ -18,6 +18,7 @@ class V3Json2GsrArguments(Tap):
     SoccerNet_path: str
     output_base_path: str
     resol720p: bool = False
+    identfy_by_team: bool = False
 
 
 GAMES: List[str] = getListGames("all")  # noqa: UP006
@@ -132,6 +133,26 @@ class PersonIdentifier:
             None
         )
         return person_id
+
+class TeamIdentifier(PersonIdentifier):
+    def __init__(self, v3_data):
+        super().__init__(v3_data)
+        self.v3_data = v3_data
+        self.cur_person_num = 0
+        self.team_inv_dict = {
+            "left": 0,
+            "right": 1,
+            "other": 2
+        } # key: team, value: person_id
+
+    def get_person_id(self, role, team, jersey_number):
+        """PersonIdentifier と同じインターフェースを持つ"""
+        person_id = self.team_inv_dict.get(
+            team,
+            None
+        )
+        return person_id
+
 
 
 def normalize_team(team: str, game_time: str):
@@ -312,7 +333,7 @@ def process_annotations(
     action_data: dict,
     gamestate_data: dict,
     super_id: str,
-    person_identifier: PersonIdentifier,
+    person_identifier: Union[PersonIdentifier, TeamIdentifier], # noqa
     resol720p: bool = False
 ):
     tqdm.write(f"Annotation: {image_name}")
@@ -368,7 +389,7 @@ def process_scene(
     gamestate_base_dir: str,
     split: str,
     super_id: str,
-    person_identifier: PersonIdentifier,
+    person_identifier: Union[PersonIdentifier, TeamIdentifier], # noqa
     resol720p: bool = False
 ):
     tqdm.write(f"scene: {scene}")
@@ -397,7 +418,7 @@ def process_scene(
     tqdm.write(f"End scene: {scene}")
 
 
-def convert_to_gamestate(game_path, gamestate_base_dir, resol720p=False):
+def convert_to_gamestate(game_path, gamestate_base_dir, resol720p=False, identifier_cls=PersonIdentifier):
     """Labels-v3.json から Labels-GameState.json 形式に変換する"""
     tqdm.write(f"Start game: {game_path}")
 
@@ -416,7 +437,7 @@ def convert_to_gamestate(game_path, gamestate_base_dir, resol720p=False):
         v3_data,
         resol720p
     )
-    person_identifier = PersonIdentifier(v3_data)
+    person_identifier = identifier_cls(v3_data)
     for scene in tqdm(['actions', 'replays']):
         # シーンごとに処理
         process_scene(
@@ -468,9 +489,11 @@ if __name__ == "__main__":
     resolution = (1280, 720) if args.resol720p else (1920, 1080)
     resize_func = torchvision.transforms.Resize((resolution[1],resolution[0]), antialias=True)
 
+    identifier_cls = TeamIdentifier if args.identfy_by_team else PersonIdentifier
+
     for game in tqdm(games):
         game_path = os.path.join(args.SoccerNet_path, game)
-        convert_to_gamestate(game_path, args.output_base_path, args.resol720p)
+        convert_to_gamestate(game_path, args.output_base_path, args.resol720p, identifier_cls)
     # from glob import glob
     # for gsr_path in glob(os.path.join(args.output_base_path, "*", "*", "Labels-GameState.json")):
     #     load_and_save_other_to_team_gsr(gsr_path)
