@@ -113,9 +113,9 @@ class PersonIdentifier:
                 for bbox in action_data['bboxes']:
                     jersey_number_or_literal = bbox['ID']
                     role, team = convert_to_attributes(bbox['class'])
-                    team = normalize_team(team, action_data['imageMetadata']['gameTime'])
+                    normalized_team = normalize_team(team, action_data['imageMetadata']['gameTime'])
                     # すでに person_id が割り当てられている場合はスキップ
-                    if (role, team, jersey_number_or_literal) in self.person_inv_dict:
+                    if (role, normalized_team, jersey_number_or_literal) in self.person_inv_dict:
                         continue
                     # person_id を割り当てる
                     self.person_inv_dict[role, team, jersey_number_or_literal] = self.get_new_id()
@@ -157,7 +157,8 @@ class TeamIdentifier(PersonIdentifier):
 
 def normalize_team(team: str, game_time: str):
     """前半のサイドに統一する
-    person_id 構築時は利用するが、Game State Reconstruction 用の json 作成時は利用しない
+    person_id 構築時は利用する
+    Game State Reconstruction 用の json 作成時は利用 ~しない~ するに決まってる
     Args:
         team (str): "left" or "rigth"
         game_time (str): "1 - MM:SS"
@@ -173,6 +174,7 @@ def normalize_team(team: str, game_time: str):
     if half == 1:
         return team
     else:
+        # swap team
         return "left" if team == "right" else "right"
 
 
@@ -341,9 +343,10 @@ def process_annotations(
     # TODO lines も今後追加する
     for idx, bbox in enumerate(action_data['bboxes']):
         role, team = convert_to_attributes(bbox['class'])
+        normilized_team = normalize_team(team, action_data['imageMetadata']['gameTime'])
         person_id = person_identifier.get_person_id(
             role,
-            normalize_team(team, action_data['imageMetadata']['gameTime']),
+            normilized_team,
             bbox['ID']
         )
         # 720p に対応するため、bboxの座標を変換
@@ -355,7 +358,7 @@ def process_annotations(
             bbox["points"]["y2"] = bbox["points"]["y2"] * 720 / 1080
 
         annotation = {
-            "id": f"{super_id}-{Path(image_name).stem}-{idx + 1}",
+            "id": f"{super_id}-{Path(image_name).stem}-{(idx + 1):04d}",
             "image_id": f"{super_id}-{Path(image_name).stem}",
             "track_id": person_id,
             "supercategory": "object", # 物体を表す識別子
@@ -363,7 +366,7 @@ def process_annotations(
             "attributes": {
                 "role": role,
                 "jersey": bbox['ID'] if (isinstance(bbox['ID'], str) and bbox['ID'].isnumeric()) else None,
-                "team": team  # 'left' or 'right'
+                "team": normilized_team,  # 'left' or 'right'
             },
             "bbox_image": {
                 "x": bbox["points"]["x1"],
