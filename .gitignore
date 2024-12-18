@@ -12,3 +12,4 @@ logs/
 
 database/batch_jsonline
 *.zip
+test

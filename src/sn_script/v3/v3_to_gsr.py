@@ -421,7 +421,12 @@ def process_scene(
     tqdm.write(f"End scene: {scene}")
 
 
-def convert_to_gamestate(game_path, gamestate_base_dir, resol720p=False, identifier_cls=PersonIdentifier):
+def convert_to_gamestate(
+    game_path,
+    gamestate_base_dir,
+    resol720p=False,
+    identifier_cls=PersonIdentifier
+):
     """Labels-v3.json から Labels-GameState.json 形式に変換する"""
     tqdm.write(f"Start game: {game_path}")
 

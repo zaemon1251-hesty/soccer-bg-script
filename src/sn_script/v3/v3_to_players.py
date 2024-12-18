@@ -46,12 +46,6 @@ def _convert_bboxes(
 ):
     global side_team_map
 
-    # debug
-    if game == "england_epl/2016-2017/2016-09-24 - 14-30 Manchester United 4 - 1 Leicester":
-        team_dict = side_team_map.get((game, int(half)))
-        print(f"{team_dict=}")
-        print((game, half))
-
     any_role_valid_flag = False
     for bbox in bboxes_data:
         role, team = convert_to_attributes(bbox['class'])

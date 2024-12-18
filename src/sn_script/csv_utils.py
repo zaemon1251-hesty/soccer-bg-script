@@ -158,6 +158,8 @@ def seconds_to_gametime(seconds):
 
 
 def gametime_to_seconds(gametime):
+    if gametime.count(":") == 2:
+        gametime = ":".join(gametime.split(":")[:2])
     m, s = gametime.split(":")
     return int(m) * 60 + int(s)
 
