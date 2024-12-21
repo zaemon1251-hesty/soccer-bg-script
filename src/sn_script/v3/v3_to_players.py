@@ -11,11 +11,12 @@ from typing import List
 
 import pandas as pd
 from loguru import logger
-from sn_script.csv_utils import gametime_to_seconds
-from sn_script.v3.v3_to_gsr import convert_to_attributes
 from SoccerNet.Downloader import getListGames
 from tap import Tap
 from tqdm import tqdm
+
+from sn_script.csv_utils import gametime_to_seconds
+from sn_script.v3.v3_to_gsr import convert_to_attributes
 
 # key: (game, half)
 # value: {side: team}
@@ -46,13 +47,9 @@ def _convert_bboxes(
 ):
     global side_team_map
 
-    any_role_valid_flag = False
     for bbox in bboxes_data:
         role, team = convert_to_attributes(bbox['class'])
-        if role in ["player", "goalkeeper"]:
-            any_role_valid_flag = True
-            pass
-        else:
+        if role not in ["player", "goalkeeper"]:
             continue
 
         jersey_number = bbox["ID"]
@@ -101,10 +98,8 @@ def _convert_bboxes(
         else:
             print(f"player_row not found: {game=}, {half=}, {time=}, {team=}, {jersey_number=}")
             continue
-    if not any_role_valid_flag:
-        print(f"any_role_valid_flag is False: {game=}, {half=}, {time=}")
-        pass
-
+        # end loop
+    # end function
 
 def _convert_bbox_point(bbox):
     # 1080p -> 720p

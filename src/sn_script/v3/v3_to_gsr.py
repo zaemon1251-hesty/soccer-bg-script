@@ -207,12 +207,14 @@ def convert_to_attributes(bbox_clazz):
     elif clazz_id == 5:
         role = "referee"
     elif clazz_id == 6:
-        role = "ball"
+        role = "referee"
     elif clazz_id == 7:
-        role = "player"
+        role = "other"
     elif clazz_id == 8:
         role = "player"
     elif clazz_id == 9:
+        role = "player"
+    elif clazz_id == 10:
         role = "goalkeeper"
 
     return role, team
@@ -460,7 +462,7 @@ def convert_to_gamestate(
             resol720p=resol720p
         )
 
-    # 書き出し
+    # 書き出し(上書き)
     gamestate_json_path = os.path.join(gamestate_base_dir, split, gamestate_data["info"]["name"], "Labels-GameState.json")
     with open(gamestate_json_path, 'w') as f:
         json.dump(gamestate_data, f, indent=4)
@@ -470,7 +472,7 @@ def convert_to_gamestate(
 
 def load_and_save_other_to_team_gsr(gsr_path):
     """
-    GSRデータのteamがNoneの場合、otherに変更する
+    GSRデータのteamがNoneの場合、otherに変更する (ファイルの編集)
     """
     with open(gsr_path) as f:
         gsr_data = json.load(f)
@@ -481,7 +483,7 @@ def load_and_save_other_to_team_gsr(gsr_path):
 
 def fill_other_to_team_gsr(gsr_data):
     """
-    GSRデータのteamがNoneの場合、otherに変更する
+    GSRデータのteamがNoneの場合、otherに変更する (dictの編集)
     """
     for annotation in gsr_data["annotations"]:
         if annotation["attributes"]["team"] is None:
