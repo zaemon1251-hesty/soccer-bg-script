@@ -11,6 +11,7 @@ resolution-markers = [
     "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
     "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
     "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
+    "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
     "python_full_version == '3.9.*' and platform_machine == 'arm64' and platform_system == 'Darwin'",
     "python_full_version == '3.9.*' and platform_machine == 'aarch64' and platform_system == 'Linux'",
     "(python_full_version == '3.9.*' and platform_machine != 'aarch64' and platform_machine != 'arm64') or (python_full_version == '3.9.*' and platform_machine == 'aarch64' and platform_system != 'Linux') or (python_full_version == '3.9.*' and platform_machine == 'arm64' and platform_system != 'Darwin')",
@@ -21,6 +22,7 @@ resolution-markers = [
     "python_full_version < '3.9' and platform_machine != 'arm64' and platform_system == 'Darwin'",
     "python_full_version < '3.9' and platform_machine == 'aarch64' and platform_system == 'Linux'",
     "(python_full_version < '3.9' and platform_machine != 'aarch64' and platform_system != 'Darwin') or (python_full_version < '3.9' and platform_system != 'Darwin' and platform_system != 'Linux')",
+    "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
     "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
     "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
     "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
@@ -962,6 +964,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/79/ca/9f5dcb8bead39959454c3912266bedc4c315839cee0e0ca9f4328f4588c1/einops-0.8.0.tar.gz", hash = "sha256:63486517fed345712a8385c100cb279108d9d47e6ae59099b07657e983deae85", size = 58861 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/44/5a/f0b9ad6c0a9017e62d4735daaeb11ba3b6c009d69a26141b258cd37b5588/einops-0.8.0-py3-none-any.whl", hash = "sha256:9572fb63046264a862693b0a87088af3bdc8c068fde03de63453cbbde245465f", size = 43223 },
+]
+
+[[package]]
+name = "et-xmlfile"
+version = "2.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d3/38/af70d7ab1ae9d4da450eeec1fa3918940a5fafb9055e934af8d6eb0c2313/et_xmlfile-2.0.0.tar.gz", hash = "sha256:dab3f4764309081ce75662649be815c4c9081e88f0837825f90fd28317d4da54", size = 17234 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c1/8b/5fe2cc11fee489817272089c4203e679c63b570a5aaeb18d852ae3cbba6a/et_xmlfile-2.0.0-py3-none-any.whl", hash = "sha256:7a91720bc756843502c3b7504c77b8fe44217c85c537d85037f0f536151b2caa", size = 18059 },
 ]
 
 [[package]]
@@ -1930,7 +1941,9 @@ resolution-markers = [
     "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
     "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
     "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
+    "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
     "python_full_version < '3.9' and platform_machine != 'arm64' and platform_system == 'Darwin'",
+    "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
     "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
     "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
     "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
@@ -2755,6 +2768,7 @@ resolution-markers = [
     "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
     "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
     "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
+    "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
     "python_full_version == '3.9.*' and platform_machine == 'arm64' and platform_system == 'Darwin'",
     "python_full_version == '3.9.*' and platform_machine == 'aarch64' and platform_system == 'Linux'",
     "(python_full_version == '3.9.*' and platform_machine != 'aarch64' and platform_machine != 'arm64') or (python_full_version == '3.9.*' and platform_machine == 'aarch64' and platform_system != 'Linux') or (python_full_version == '3.9.*' and platform_machine == 'arm64' and platform_system != 'Darwin')",
@@ -2765,6 +2779,7 @@ resolution-markers = [
     "python_full_version < '3.9' and platform_machine != 'arm64' and platform_system == 'Darwin'",
     "python_full_version < '3.9' and platform_machine == 'aarch64' and platform_system == 'Linux'",
     "(python_full_version < '3.9' and platform_machine != 'aarch64' and platform_system != 'Darwin') or (python_full_version < '3.9' and platform_system != 'Darwin' and platform_system != 'Linux')",
+    "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
     "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
     "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
     "python_full_version < '3.9' and platform_machine == 'arm64' and platform_system == 'Darwin'",
@@ -3072,6 +3087,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/3f/a4/d2537f47fd7fcfba966bd806e3ec18e7ee1681056d4b0a9c8d983983e4d5/opencv_python-4.10.0.84-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9ace140fc6d647fbe1c692bcb2abce768973491222c067c131d80957c595b71f", size = 62548253 },
     { url = "https://files.pythonhosted.org/packages/1e/39/bbf57e7b9dab623e8773f6ff36385456b7ae7fa9357a5e53db732c347eac/opencv_python-4.10.0.84-cp37-abi3-win32.whl", hash = "sha256:2db02bb7e50b703f0a2d50c50ced72e95c574e1e5a0bb35a8a86d0b35c98c236", size = 28737688 },
     { url = "https://files.pythonhosted.org/packages/ec/6c/fab8113424af5049f85717e8e527ca3773299a3c6b02506e66436e19874f/opencv_python-4.10.0.84-cp37-abi3-win_amd64.whl", hash = "sha256:32dbbd94c26f611dc5cc6979e6b7aa1f55a64d6b463cc1dcd3c95505a63e48fe", size = 38842521 },
+]
+
+[[package]]
+name = "openpyxl"
+version = "3.1.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "et-xmlfile" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/3d/f9/88d94a75de065ea32619465d2f77b29a0469500e99012523b91cc4141cd1/openpyxl-3.1.5.tar.gz", hash = "sha256:cf0e3cf56142039133628b5acffe8ef0c12bc902d2aadd3e0fe5878dc08d1050", size = 186464 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c0/da/977ded879c29cbd04de313843e76868e6e13408a94ed6b987245dc7c8506/openpyxl-3.1.5-py2.py3-none-any.whl", hash = "sha256:5282c12b107bffeef825f4617dc029afaf41d0ea60823bbb665ef3079dc79de2", size = 250910 },
 ]
 
 [[package]]
@@ -4632,6 +4659,7 @@ dependencies = [
     { name = "nltk" },
     { name = "openai" },
     { name = "opencv-python" },
+    { name = "openpyxl" },
     { name = "pandas" },
     { name = "plotly" },
     { name = "polars" },
@@ -4666,6 +4694,7 @@ requires-dist = [
     { name = "nltk", specifier = ">=3.8.1" },
     { name = "openai", specifier = ">=1.3.0" },
     { name = "opencv-python", specifier = ">=4.10.0.84" },
+    { name = "openpyxl", specifier = ">=3.1.5" },
     { name = "pandas", specifier = ">=2.0.3" },
     { name = "plotly", specifier = ">=5.24.1" },
     { name = "polars", specifier = ">=1.8.2" },

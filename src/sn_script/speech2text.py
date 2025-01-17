@@ -46,7 +46,7 @@ class Speech2TextArguments(Tap):
     hf_token: str = ""
     num_speakers: int = None
     min_speakers: int = None
-    max_speakers: int = None
+    max_speakers: int = 2
 
     # whisperx の VADの設定
     vad_onset: float = 0.500
@@ -62,6 +62,7 @@ class Speech2TextArguments(Tap):
     min_silence_duration_ms: int = 2000
     window_size_samples: int = 1024
     speech_pad_ms: int = 400
+
 
     def configure(self):
         self.add_argument("--target_games", nargs="*")

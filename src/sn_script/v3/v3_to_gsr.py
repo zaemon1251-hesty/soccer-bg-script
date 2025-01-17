@@ -254,7 +254,8 @@ def get_gamestate_dict_and_metadatas(
             "im_dir": "img1",
             "frame_rate": 5, # TODO ちゃんと計算する
             "seq_length": len(list_actions) + len(list_replays),
-            "im_ext": ".png"
+            "im_ext": ".png",
+            "game": metadata["UrlLocal"],
         },
         "images": [],
         "annotations": [],

@@ -2,9 +2,10 @@ import os
 from typing import List, Literal, Union  # noqa: UP035 python3.8で動くようにするため
 
 from loguru import logger
+from tap import Tap
+
 from SoccerNet.Downloader import SoccerNetDownloader as SNdl
 from SoccerNet.utils import getListGames
-from tap import Tap
 
 try:
     from sn_script.config import Config
