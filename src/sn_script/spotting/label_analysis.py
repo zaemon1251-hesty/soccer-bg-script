@@ -58,6 +58,7 @@ def assign_reference_flags(
     """
     (game, half) ごとに comment_df と label_df_subset を照合して、
     df の rows が [start, end) 区間に含まれるかどうかを「label_col_name」列で True/False にセットする。
+    return: None
     """
     grouped_intervals = label_df_subset.groupby(["game", "half"])
 
@@ -132,7 +133,7 @@ def prepare_data(
     label_df: pd.DataFrame,
     window_former: int,
     window_latter: int,
-    binary_category_name: str
+    binary_category_name: str,
 ):
     """
     前処理: label_df に start/end 列を作成しソート、df もソート＋orig_index管理。
@@ -177,7 +178,8 @@ def label_ratio_around_event(
     window_former=5,
     window_latter=5,
     binary_category_name="付加的情報か",
-    label_type="action"
+    label_type="action",
+    return_changed_comment_df: bool = False
 ):
     """
     メイン関数: 前処理 → フラグ付け → 集計 → 表示／CSV保存
@@ -205,5 +207,8 @@ def label_ratio_around_event(
 
     # ---- 表示・出力 ----
     show_and_save_results(result_df, window_former, window_latter, label_type)
+
+    if return_changed_comment_df:
+        return result_df, comment_df
 
     return result_df

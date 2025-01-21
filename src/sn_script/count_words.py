@@ -14,7 +14,7 @@ logger = getLogger(__name__)
 
 sys.path.append("/raid_elmo/home/lr/moriy/sn-caption")
 
-from Benchmarks.TemporallyAwarePooling.src import dataset
+# from Benchmarks.TemporallyAwarePooling.src import dataset
 
 tzinfo = datetime.timezone(datetime.timedelta(hours=9))
 

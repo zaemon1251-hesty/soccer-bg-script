@@ -4,7 +4,6 @@
 入出力
 - jsons to csv
 """
-import csv
 import json
 from pathlib import Path
 
@@ -13,22 +12,11 @@ from tap import Tap
 
 from SoccerNet.Downloader import getListGames
 
-try:
-    from sn_script.config import (
-        Config,
-    )
-except ModuleNotFoundError:
-    import sys
-
-    sys.path.append(".")
-    from src.sn_script.config import (
-        Config,
-    )
-
 
 class Args(Tap):
     SoccerNet_path: str
     output_dir: str
+
 
 def labels_cameras_json_to_csv(game_split_dict: dict[str, str], soccernet_path: str, csv_file_path):
     row_list = []

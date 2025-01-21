@@ -10,20 +10,18 @@
 """
 from __future__ import annotations
 
-import warnings
 from pathlib import Path
 
 import pandas as pd
 from tap import Tap
 
 try:
-    from SoccerNet.Downloader import getListGames
-
     from sn_script.config import (
         Config,
         binary_category_name,
     )
     from sn_script.csv_utils import gametime_to_seconds
+    from SoccerNet.Downloader import getListGames
 except ModuleNotFoundError:
     import sys
 
@@ -56,7 +54,6 @@ def split_gamelist(gamelist: list[str]) -> dict[str, list[str]]:
                 gamelist_dict[split].append(game)
                 break
         else:
-            warnings
             gamelist_dict["train"].append(game)
 
     return gamelist_dict

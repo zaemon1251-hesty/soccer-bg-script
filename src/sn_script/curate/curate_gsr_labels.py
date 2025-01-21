@@ -6,7 +6,6 @@
 """
 import csv
 import json
-from collections import namedtuple
 from dataclasses import dataclass
 
 from SoccerNet.Downloader import getListGames
