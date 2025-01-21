@@ -7,7 +7,9 @@ docs
 annotation_tool/video
 annotation_tool/audio
 !annotation_tool/*.txt
-
+database/*
+!database/.gitkeep
+!database/.gitignore
 logs/
 
 database/batch_jsonline
