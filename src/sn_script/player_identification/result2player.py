@@ -1,3 +1,4 @@
+import sys
 import warnings
 from pathlib import Path
 
@@ -21,8 +22,7 @@ class Args(Tap):
     evaluatoin_sample_path = "/Users/heste/workspace/soccernet/sn-script/database/misc/RAGモジュール出力サンプル-13090437a14481f485ffdf605d3408cd.csv"
 
     output_csv_path: str = "/Users/heste/workspace/soccernet/sn-script/database/misc/players_in_frames_sn_gamestate_29-33.csv"
-
-
+    output_jsonl: str = None
 
 
 def _convert_detections(
@@ -38,7 +38,7 @@ def _convert_detections(
 
     any_role_valid_flag = False
     for _, row in detection_df.iterrows():
-        role, team = row['role'], row['team']
+        role, team = row["role"], row["team"]
         if role in ["player", "goalkeeper"]:
             any_role_valid_flag = True
             pass
@@ -64,14 +64,10 @@ def _convert_detections(
             continue
 
         player_df["shirt_number"] = player_df["shirt_number"].astype(int)
-        player_row = player_df[
-            (player_df["game"] == game) &
-            (player_df["team"] == team) &
-            (player_df["shirt_number"] == jersey_number)
-        ]
+        player_row = player_df[(player_df["game"] == game) & (player_df["team"] == team) & (player_df["shirt_number"] == jersey_number)]
 
         if not player_row.empty:
-            player_row = player_row.iloc[0] # 高々ひとつしか取れないはず
+            player_row = player_row.iloc[0]  # 高々ひとつしか取れないはず
             # row["bbox_ltwh"] は ndarray
             x1, y1, x2, y2 = row["bbox_ltwh"]
             player_data = {
@@ -126,43 +122,27 @@ if __name__ == "__main__":
     }
 
     # video_idの昇順と、評価サンプルIDの昇順でソートして対応付ける
-    gamestate_df["mapping_id"] = pd.factorize(
-        gamestate_df["video_id"].astype(int)
-    )[0]
+    gamestate_df["mapping_id"] = pd.factorize(gamestate_df["video_id"].astype(int))[0]
 
-    evaluation_sample_df["mapping_id"] = pd.factorize(
-        evaluation_sample_df["id"].astype(int)
-    )[0]
+    evaluation_sample_df["mapping_id"] = pd.factorize(evaluation_sample_df["id"].astype(int))[0]
 
     # sample() は 1つだけ取れる想定
-    game_df = evaluation_sample_df.groupby(['game', 'half', 'time']).sample().reset_index()
+    game_df = evaluation_sample_df.groupby(["game", "half", "time"]).sample().reset_index()
 
     # mapping_id で結合
-    merged_df = pd.merge(
-        gamestate_df,
-        evaluation_sample_df,
-        on="mapping_id",
-        how="left"
-    )
+    merged_df = pd.merge(gamestate_df, evaluation_sample_df, on="mapping_id", how="left")
 
     list_of_dicts = []
     merged_df.image_id = merged_df.image_id.astype(int)
     for (game, half), group in merged_df.groupby(["game", "half"]):
         print(f"{game=}, {half=}")
         for time in group["time"].unique():
-            target_detections = merged_df[
-                (merged_df["game"] == game) &
-                (merged_df["half"] == half) &
-                (merged_df["time"] == time)
-            ]
+            target_detections = merged_df[(merged_df["game"] == game) & (merged_df["half"] == half) & (merged_df["time"] == time)]
 
             # 区間の真ん中が発話タイミング
-            # 2秒前後を対象とする、2*25fps=50枚程度
+            # 2秒前までを対象とする、2*25fps=50枚程度
             mean_image_id = target_detections.image_id.mean()
-            target_detections = target_detections[
-                (target_detections["image_id"] <= mean_image_id + 50) &
-                (target_detections["image_id"] >= mean_image_id - 50)
-            ]
+            target_detections = target_detections[(target_detections["image_id"] <= mean_image_id) & (target_detections["image_id"] >= mean_image_id - 50)]
 
             time_int = gametime_to_seconds(time)
             list_of_dicts_per_scene = _convert_detections(
@@ -175,8 +155,14 @@ if __name__ == "__main__":
         print(f"{len(list_of_dicts_per_scene)=}")
         list_of_dicts.extend(list_of_dicts_per_scene)
 
-    if list_of_dicts:
-        # remove duplicates
-        output_df = pd.DataFrame(list_of_dicts)
-        output_df = output_df.drop_duplicates(subset=["game", "half", "time", "team", "jersey_number"])
+    if not list_of_dicts:
+        warnings.warn("list_of_dicts is empty", stacklevel=2)
+        sys.exit(1)
+
+    # remove duplicates
+    output_df = pd.DataFrame(list_of_dicts)
+    output_df = output_df.drop_duplicates(subset=["game", "half", "time", "team", "jersey_number"])
+    if args.output_csv_path:
         output_df.to_csv(output_csv_path, index=False)
+    if args.output_jsonl:
+        output_df.to_json(args.output_jsonl, orient="records", lines=True)
