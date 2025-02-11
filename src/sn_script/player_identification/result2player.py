@@ -7,10 +7,13 @@ from sn_script.csv_utils import gametime_to_seconds
 from sn_script.player_identification.gsr_data import GSRStates
 from tap import Tap
 
+fps = 25
 
 class Args(Tap):
     # 選手同定モジュールの出力結果
-    gsr_result_pklz: str = "/Users/heste/workspace/soccernet/tracklab/outputs/sn-gamestate-v2/2024-12-26/23-51-02/states/sn-gamestate-v2.pklz"
+    gsr_result_pklz: str = "/Users/heste/workspace/soccernet/tracklab/outputs/sn-gamestate-v2/2024-12-17/10-57-24/states/sn-gamestate-v2.pklz"
+    # 下は追加サンプル分
+    # gsr_result_pklz: str = "/Users/heste/workspace/soccernet/tracklab/outputs/sn-gamestate-v2/2024-12-26/23-51-02/states/sn-gamestate-v2.pklz"
 
     # left,rigth からチームを取得するためのCSV
     side_team_map_csv: str = "/Users/heste/workspace/soccernet/sn-script/database/misc/side_to_team.csv"
@@ -21,7 +24,7 @@ class Args(Tap):
     # 評価用の映像のメタデータを管理するCSV: sample_id,game,half,time
     evaluatoin_sample_path = "/Users/heste/workspace/soccernet/sn-script/database/misc/RAGモジュール出力サンプル-13090437a14481f485ffdf605d3408cd.csv"
 
-    output_csv_path: str = "/Users/heste/workspace/soccernet/sn-script/database/misc/players_in_frames_sn_gamestate_29-33.csv"
+    output_csv_path: str = "/Users/heste/workspace/soccernet/sn-script/database/demo/players_in_frames_sn_gamestate.csv"
     output_jsonl: str = None
 
 
@@ -30,11 +33,23 @@ def _convert_detections(
     player_df: pd.DataFrame,
     game: str,
     half: int,
-    time: int,
+    mean_time: int,
 ):
     assert {"role", "team", "jersey_number", "bbox_ltwh"}.issubset(detection_df.columns)
 
     list_of_dicts = []
+
+    max_image_id = detection_df["image_id"].max()
+    min_image_id = detection_df["image_id"].min()
+    mean_image_id = detection_df["image_id"].mean()
+    num_images = max_image_id - min_image_id + 1
+
+    # time から 前後15秒の合計30秒を切り取ったから，大体 num_images / 30 = fps が出るはず
+    assert abs(num_images / 30 - fps) <= 1., f"{num_images=}, {fps=}"
+
+    def frame_to_time(image_id, mean_time):
+        """image_id から time を計算する"""
+        return mean_time + (image_id - mean_image_id) / fps
 
     any_role_valid_flag = False
     for _, row in detection_df.iterrows():
@@ -53,14 +68,14 @@ def _convert_detections(
         elif isinstance(jersey_number, int):
             pass
         else:
-            warnings.warn(f"jersey_number is None: {game=}, {half=}, {time=}, {team=}, {jersey_number=}", stacklevel=3)
+            warnings.warn(f"jersey_number is None: {game=}, {half=}, {mean_time=}, {team=}, {jersey_number=}", stacklevel=3)
             continue
 
         side_team = side_team_map.get((game, half))
         if side_team is not None:
             team = side_team[team]
         else:
-            warnings.warn(f"side_team is None: {game=}, {half=}, {time=}, {team=}, {jersey_number=}", stacklevel=3)
+            warnings.warn(f"side_team is None: {game=}, {half=}, {mean_time=}, {team=}, {jersey_number=}", stacklevel=3)
             continue
 
         player_df["shirt_number"] = player_df["shirt_number"].astype(int)
@@ -73,7 +88,7 @@ def _convert_detections(
             player_data = {
                 "game": game,
                 "half": half,
-                "time": time,
+                "time": frame_to_time(row["image_id"], mean_time),
                 "team": team,
                 "name": player_row["name"],
                 "short_name": player_row["short_name"],
@@ -86,10 +101,10 @@ def _convert_detections(
             player_data["y2_720p"] = int(y2)
             list_of_dicts.append(player_data)
         else:
-            warnings.warn(f"player_row not found: {game=}, {half=}, {time=}, {team=}, {jersey_number=}", stacklevel=2)
+            warnings.warn(f"player_row not found: {game=}, {half=}, {mean_time=}, {team=}, {jersey_number=}", stacklevel=2)
             continue
     if not any_role_valid_flag:
-        warnings.warn(f"any_role_valid_flag is False: {game=}, {half=}, {time=}", stacklevel=2)
+        warnings.warn(f"any_role_valid_flag is False: {game=}, {half=}, {mean_time=}", stacklevel=2)
         pass
 
     return list_of_dicts
@@ -136,21 +151,23 @@ if __name__ == "__main__":
     merged_df.image_id = merged_df.image_id.astype(int)
     for (game, half), group in merged_df.groupby(["game", "half"]):
         print(f"{game=}, {half=}")
-        for time in group["time"].unique():
-            target_detections = merged_df[(merged_df["game"] == game) & (merged_df["half"] == half) & (merged_df["time"] == time)]
+        for utterance_start_time in group["time"].unique():
+            target_detections = merged_df[(merged_df["game"] == game) & (merged_df["half"] == half) & (merged_df["time"] == utterance_start_time)]
 
             # 区間の真ん中が発話タイミング
             # 2秒前までを対象とする、2*25fps=50枚程度
-            mean_image_id = target_detections.image_id.mean()
-            target_detections = target_detections[(target_detections["image_id"] <= mean_image_id) & (target_detections["image_id"] >= mean_image_id - 50)]
+            # mean_image_id = target_detections.image_id.mean()
+            # target_detections = target_detections[(target_detections["image_id"] <= mean_image_id) & (target_detections["image_id"] >= mean_image_id - 50)]
 
-            time_int = gametime_to_seconds(time)
+            # 全てのフレームを対象とする
+
+            mean_time_int = gametime_to_seconds(utterance_start_time)
             list_of_dicts_per_scene = _convert_detections(
                 target_detections,
                 player_df,
                 game,
                 half,
-                time_int,
+                mean_time_int,
             )
         print(f"{len(list_of_dicts_per_scene)=}")
         list_of_dicts.extend(list_of_dicts_per_scene)
