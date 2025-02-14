@@ -57,6 +57,25 @@ def _convert_detections(
         if role in ["player", "goalkeeper"]:
             any_role_valid_flag = True
             pass
+        elif role == "ball":
+            x1, y1, x2, y2 = row["bbox_ltwh"]
+
+            player_data = {
+                "game": game,
+                "half": half,
+                "time": frame_to_time(row["image_id"], mean_time),
+                "image_id": row["image_id"] - min_image_id + 1,
+                "team": "ball",
+                "name": None,
+                "short_name": None,
+                "jersey_number": None,
+                "country": None,
+                "x1": int(x1),
+                "y1": int(y1),
+                "x2": int(x2),
+                "y2": int(y2),
+            }
+
         else:
             continue
 
@@ -84,7 +103,8 @@ def _convert_detections(
         if not player_row.empty:
             player_row = player_row.iloc[0]  # 高々ひとつしか取れないはず
             # row["bbox_ltwh"] は ndarray
-            x1, y1, x2, y2 = row["bbox_ltwh"]
+            x,y,l,w = row["bbox_ltwh"]
+            x1, y1, x2, y2 = x, y, x+l, y+w
             player_data = {
                 "game": game,
                 "half": half,
@@ -94,11 +114,13 @@ def _convert_detections(
                 "short_name": player_row["short_name"],
                 "jersey_number": jersey_number,
                 "country": player_row["country"],
+                "long_name": player_row["long_name"],
+                "image_id": row["image_id"] - min_image_id + 1,
             }
-            player_data["x1_720p"] = int(x1)
-            player_data["y1_720p"] = int(y1)
-            player_data["x2_720p"] = int(x2)
-            player_data["y2_720p"] = int(y2)
+            player_data["x1"] = int(x1)
+            player_data["y1"] = int(y1)
+            player_data["x2"] = int(x2)
+            player_data["y2"] = int(y2)
             list_of_dicts.append(player_data)
         else:
             warnings.warn(f"player_row not found: {game=}, {half=}, {mean_time=}, {team=}, {jersey_number=}", stacklevel=2)
