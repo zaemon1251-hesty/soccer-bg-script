@@ -25,7 +25,7 @@ GAMES: List[str] = getListGames("all")  # noqa: UP006
 
 
 class Arguments(Tap):
-    task: Literal["caption", "gsr", "jersey", "spotting", "tracking", "video", "v3"] = "caption"
+    task: Literal["caption", "gsr", "jersey", "spotting", "tracking", "video", "v3", "bas"] = "caption"
     type: Literal["challenge-label", "underbar", "default"] = "default"
     target_game: str = "all"  # noqa: UP006, UP007
 
@@ -44,6 +44,10 @@ def download_jersey_label(arg: Arguments):
 def download_spotting_label(arg: Arguments):
     my_soccer_net_downloader = SNdl(LocalDirectory=LOCAL_DIRECTORY)
     my_soccer_net_downloader.downloadGames(files=["Labels-v2.json"], split=["train","valid","test"])
+
+def download_bas_label(arg: Arguments):
+    my_soccer_net_downloader = SNdl(LocalDirectory=LOCAL_DIRECTORY)
+    my_soccer_net_downloader.downloadGames(task=["spotting-ball-2024"], split=["train","valid","test"])
 
 def download_tacking_label(arg: Arguments):
     my_soccer_net_downloader = SNdl(LocalDirectory=LOCAL_DIRECTORY)
@@ -152,6 +156,8 @@ def main(arg: Arguments):
 
     elif arg.task == "v3":
         download_v3_label(arg)
+    elif arg.task == "bas":
+        download_bas_label(arg)
 
     else:
         raise ValueError("Invalid task.")

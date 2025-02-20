@@ -9,17 +9,19 @@ from googletrans import Translator
 from tap import Tap
 
 
+DEEPL_API_KEY = os.environ.get('DEEPL_API_KEY')
+
+PROJECT_ID = environ.get("PROJECT_ID", "")
+
+PARENT = f"projects/{PROJECT_ID}"
+
+
 class EvaluateTranslateArguments(Tap):
     input_csv: str
     output_csv: str
     engine: str = "google"
     src_text_col: str = "text"
     en_text_col: str = "text_en"
-
-DEEPL_API_KEY = os.environ.get('DEEPL_API_KEY')
-PROJECT_ID = environ.get("PROJECT_ID", "")
-assert PROJECT_ID
-PARENT = f"projects/{PROJECT_ID}"
 
 
 def translate_gcloud(text: str, target_language_code: str) -> translate_gcloud_cls.Translation:
