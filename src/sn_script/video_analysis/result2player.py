@@ -3,11 +3,13 @@ import warnings
 from pathlib import Path
 
 import pandas as pd
-from sn_script.csv_utils import gametime_to_seconds
-from sn_script.player_identification.gsr_data import GSRStates
 from tap import Tap
 
+from sn_script.csv_utils import gametime_to_seconds
+from sn_script.video_analysis.gsr_data import GSRStates
+
 fps = 25
+
 
 class Args(Tap):
     # 選手同定モジュールの出力結果
@@ -21,8 +23,8 @@ class Args(Tap):
     # sn-captionのメタデータで作ったCSV
     player_master_csv: str = "/Users/heste/workspace/soccernet/sn-script/database/misc/sncaption_players.csv"
 
-    # 評価用の映像のメタデータを管理するCSV: sample_id,game,half,time
-    evaluatoin_sample_path = "/Users/heste/workspace/soccernet/sn-script/database/misc/RAGモジュール出力サンプル-13090437a14481f485ffdf605d3408cd.csv"
+    # 評価用の映像のメタデータを管理するCSV: id,game,half,time (ここでいうidはsample番号)
+    metadata_csv = "/Users/heste/workspace/soccernet/sn-script/database/misc/RAGモジュール出力サンプル-13090437a14481f485ffdf605d3408cd.csv"
 
     output_csv_path: str = "/Users/heste/workspace/soccernet/sn-script/database/demo/players_in_frames_sn_gamestate.csv"
     output_jsonl: str = None
@@ -126,7 +128,7 @@ if __name__ == "__main__":
     side_team_map_csv = args.side_team_map_csv
     player_master_csv = args.player_master_csv
     output_csv_path = args.output_csv_path
-    evaluatoin_sample_path = args.evaluatoin_sample_path
+    metadata_csv = args.metadata_csv
 
     gsr_result = GSRStates.initialize(Path(gsr_result_path))
     gamestate_df = gsr_result.gamestate_df
@@ -134,7 +136,7 @@ if __name__ == "__main__":
     side_team_map_df = pd.read_csv(side_team_map_csv)
     player_df = pd.read_csv(player_master_csv)
 
-    evaluation_sample_df = pd.read_csv(evaluatoin_sample_path)
+    metadata_df = pd.read_csv(metadata_csv)
 
     # left, right からチームを取得するための辞書
     side_team_map = {
@@ -148,13 +150,13 @@ if __name__ == "__main__":
     # video_idの昇順と、評価サンプルIDの昇順でソートして対応付ける
     gamestate_df["mapping_id"] = pd.factorize(gamestate_df["video_id"].astype(int))[0]
 
-    evaluation_sample_df["mapping_id"] = pd.factorize(evaluation_sample_df["id"].astype(int))[0]
+    metadata_df["mapping_id"] = pd.factorize(metadata_df["id"].astype(int))[0]
 
     # sample() は 1つだけ取れる想定
-    game_df = evaluation_sample_df.groupby(["game", "half", "time"]).sample().reset_index()
+    game_df = metadata_df.groupby(["game", "half", "time"]).sample().reset_index()
 
     # mapping_id で結合
-    merged_df = pd.merge(gamestate_df, evaluation_sample_df, on="mapping_id", how="left")
+    merged_df = pd.merge(gamestate_df, metadata_df, on="mapping_id", how="left")
 
     list_of_dicts = []
     merged_df.image_id = merged_df.image_id.astype(int)

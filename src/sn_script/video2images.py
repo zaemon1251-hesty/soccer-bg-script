@@ -5,11 +5,11 @@ from typing import List, Optional  # noqa
 
 import pandas as pd
 from loguru import logger
+from SoccerNet.Downloader import getListGames
 from tap import Tap
 from tqdm import tqdm
 
 from sn_script.csv_utils import gametime_to_seconds
-from SoccerNet.Downloader import getListGames
 
 GAMES: List[str] = getListGames("all", task="caption")  # noqa
 

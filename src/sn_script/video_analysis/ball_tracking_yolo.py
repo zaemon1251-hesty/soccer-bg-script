@@ -1,9 +1,10 @@
-from ultralytics import YOLO
-import cv2
 import os
+
+import cv2
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
-import numpy as np
+from ultralytics import YOLO
 
 os.environ["YOLO_VERBOSE"] = "False"
 

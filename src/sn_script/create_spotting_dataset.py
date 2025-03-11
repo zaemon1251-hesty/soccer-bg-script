@@ -8,6 +8,7 @@
 入出力
 - csv to csv
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -16,17 +17,19 @@ import pandas as pd
 from tap import Tap
 
 try:
+    from SoccerNet.Downloader import getListGames
+
     from sn_script.config import (
         Config,
         binary_category_name,
     )
     from sn_script.csv_utils import gametime_to_seconds
-    from SoccerNet.Downloader import getListGames
 except ModuleNotFoundError:
     import sys
 
     sys.path.append(".")
     from src.sn_script.config import Config, binary_category_name
+
 
 class CreateDatasetArguments(Tap):
     version: str = "v1"
@@ -72,24 +75,25 @@ def map_category_id(label):
         label = int(label)
     if isinstance(label, float) and label.is_integer():
         label = int(label)
-    mapping = {
-        0: 1, # 映像の説明
-        1: 2  # 付加的情報を含むコメント
-    }
+    mapping = {0: 1, 1: 2}  # 映像の説明  # 付加的情報を含むコメント
     return mapping.get(label, None)
 
 
 def preprocess_dataframe(commentary_df: pd.DataFrame) -> pd.DataFrame:
     assert "start" in commentary_df.columns, "start column is required"
     assert "game" in commentary_df.columns, "game column is required"
-    assert binary_category_name in commentary_df.columns, f"{binary_category_name} column is required"
+    assert (
+        binary_category_name in commentary_df.columns
+    ), f"{binary_category_name} column is required"
 
     # ゲームがどのデータセットに含まれるか
     game_split_map = get_game_split_map()
 
     commentary_df["split"] = commentary_df["game"].map(game_split_map).dropna()
     try:
-        commentary_df["target_frameid"] = commentary_df["start"].apply(gametime_to_seconds).astype("int32") # 発話開始がターゲット。1fpsだからフレーム数と一致する
+        commentary_df["target_frameid"] = (
+            commentary_df["start"].apply(gametime_to_seconds).astype("int32")
+        )  # 発話開始がターゲット。1fpsだからフレーム数と一致する
     except ValueError as e:
         for _, row in commentary_df.iterrows():
             try:
@@ -97,17 +101,34 @@ def preprocess_dataframe(commentary_df: pd.DataFrame) -> pd.DataFrame:
             except ValueError:
                 raise RuntimeError(row) from e
 
-    commentary_df["target_label"] = commentary_df[binary_category_name].apply(map_category_id).dropna().astype("int32")
+    commentary_df["target_label"] = (
+        commentary_df[binary_category_name]
+        .apply(map_category_id)
+        .dropna()
+        .astype("int32")
+    )
 
     return commentary_df
 
 
 def preprocess_dataframe_v2(commentary_df: pd.DataFrame) -> pd.DataFrame:
-    assert set(commentary_df.columns) >= {"game", "half", "start", "end", "text", binary_category_name}
+    assert set(commentary_df.columns) >= {
+        "game",
+        "half",
+        "start",
+        "end",
+        "text",
+        binary_category_name,
+    }
     game_split_map = get_game_split_map()
     commentary_df["split"] = commentary_df["game"].map(game_split_map).dropna()
     # とりあえず、target_labelだけ統一しておく
-    commentary_df["target_label"] = commentary_df[binary_category_name].apply(map_category_id).dropna().astype("int32")
+    commentary_df["target_label"] = (
+        commentary_df[binary_category_name]
+        .apply(map_category_id)
+        .dropna()
+        .astype("int32")
+    )
     return commentary_df
 
 
@@ -122,6 +143,7 @@ def split_df_train_valid_test(commentary_df: pd.DataFrame):
     test_df = commentary_df[commentary_df["split"] == "test"]
 
     return train_df, valid_df, test_df
+
 
 def main(args: CreateDatasetArguments):
     commentary_df = pd.read_csv(args.stable_csv)

@@ -23,7 +23,7 @@
     "**/images/**": true
   },
   "ruff.organizeImports": false,
-  "ruff.format.args": [
-    "--config=pyproject.toml"
-  ],
+  "flake8.args": [
+    "--ignore=E501"
+  ]
 }
