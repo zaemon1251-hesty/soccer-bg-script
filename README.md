@@ -28,7 +28,7 @@ TODO どっちかに統一する
 ### 事前準備
 
 - このリポジトリを `pip install -e .`　する。あと、sn-gamestateとtracklabも環境構築しておく。
-- `archives/analysis-data.zip` を database というディレクトリ名で解凍
+- <https://drive.google.com/file/d/1eKNQ5l5H19Wxat0N46ubjjhPDWrEUMOs/view?usp=drive_link> からzipをダウンロードし、 database というディレクトリ名で解凍
 - SoccerNetの映像をダウンロードして、適当なディレクトリに (例: `/local/moriy/SoccerNet`) に配置
 
 ### 映像解析
